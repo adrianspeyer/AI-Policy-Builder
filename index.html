@@ -42,7 +42,6 @@
   </div>
 
   <script>
-    // Steps configuration
     const steps = [
       { id:'company', title:'Company Info', info:'Your company name, industry, jurisdiction & tone.', fields:['companyName','industry','jurisdiction','tone'] },
       { id:'scope', title:'Scope', info:'Who the policy applies to.', fields:['scope'] },
@@ -69,8 +68,6 @@
     const modal = document.getElementById('infoModal');
     const modalText = document.getElementById('modalText');
     const closeModal = document.getElementById('closeModal');
-    
-// Generate HTML for each field
     function getFieldHTML(f) {
       switch(f) {
         case 'companyName':
@@ -78,22 +75,17 @@
         case 'industry':
           return `<label>Industry:</label><select id="industry">
                     <option value="">-- Select --</option>
-                    <option>Healthcare / Medical</option>
-                    <option>Financial Services</option>
-                    <option>Insurance</option>
-                    <option>Legal / Compliance</option>
-                    <option>Education</option>
-                    <option>Technology</option>
-                    <option>Manufacturing</option>
-                    <option>Retail / E-commerce</option>
+                    <option>Healthcare / Medical</option><option>Financial Services</option>
+                    <option>Insurance</option><option>Legal / Compliance</option>
+                    <option>Education</option><option>Technology</option>
+                    <option>Manufacturing</option><option>Retail / E-commerce</option>
                     <option>Other</option>
                   </select>`;
         case 'jurisdiction':
           return '<label>Jurisdiction (e.g., New Jersey):</label><input type="text" id="jurisdiction">';
         case 'tone':
           return `<label>Tone:</label><select id="tone">
-                    <option value="formal">Formal Legal</option>
-                    <option value="plain">Plain Language</option>
+                    <option value="formal">Formal Legal</option><option value="plain">Plain Language</option>
                   </select>`;
         case 'scope':
           return `<label>Applies to:</label><select id="scope">
@@ -102,9 +94,7 @@
                   </select>`;
         case 'includeDefinitions':
           return `<label>Include definitions & appendix?</label>
-                    <select id="includeDefinitions">
-                      <option value="yes">Yes</option><option value="no">No</option>
-                    </select>`;
+                    <select id="includeDefinitions"><option value="yes">Yes</option><option value="no">No</option></select>`;
         case 'personalData':
           return `<label><input type="checkbox" id="personalData"> Handle personal data</label>`;
         case 'tradeSecrets':
@@ -192,7 +182,6 @@
       }
     }
 
-    // Save user input
     function saveStepData() {
       steps[currentStep].fields.forEach(f => {
         const el = document.getElementById(f);
@@ -207,10 +196,7 @@
     function prevStep() { currentStep--; renderStep(); }
     function skipStep() { currentStep++; renderStep(); }
 
-    function showInfo(txt) {
-      modalText.innerHTML = txt;
-      modal.style.display = 'block';
-    }
+    function showInfo(txt){ modalText.innerHTML = txt; modal.style.display='block'; }
     closeModal.onclick = ()=> modal.style.display='none';
     window.onclick = e=> { if(e.target===modal) modal.style.display='none'; };
 
@@ -224,8 +210,7 @@
                <button class="skip-btn" onclick="skipStep()">Skip</button>`;
       wizardDiv.innerHTML = html;
     }
-
-    // Numbered section heading helper
+    // Heading helper
     function heading(num, title) {
       return `<h3>${num}. ${title}</h3>`;
     }
@@ -233,10 +218,10 @@
     function sectionIntro() {
       const c = formData.companyName, j = formData.jurisdiction;
       return heading(1,'Introduction & Purpose') + `
-<p>This policy establishes the principles, rules, and controls that govern the safe, ethical, and compliant use of Artificial Intelligence (AI) across <strong>${c}</strong>. Our goals are to:</p>
+<p>This policy establishes the principles, rules, and controls that govern the safe, ethical, and compliant use of AI across <strong>${c}</strong>. Our goals are to:</p>
 <ul>
   <li>safeguard customer and employee data;</li>
-  <li>protect trade secrets and other IP;</li>
+  <li>protect trade secrets and IP;</li>
   <li>prevent bias and discriminatory outcomes;</li>
   <li>uphold all applicable laws and industry standards;</li>
   <li>maintain trust of customers, partners, and the public;</li>
@@ -244,24 +229,192 @@
 </ul><hr>`;
     }
 
-    function sectionScope() { /* as above... */ }
-    function sectionDefinitions() { /* as above... */ }
-    function sectionPrivacy() { /* as above... */ }
-    function sectionProhibited() { /* as above... */ }
-    function sectionGovernance() { /* as above... */ }
-    function sectionIP() { /* as above... */ }
-    function sectionBias() { /* as above... */ }
-    function sectionCompliance() { /* as above... */ }
-    function sectionTransparency() { /* as above... */ }
-    function sectionTraining() { /* as above... */ }
-    function sectionVendor() { /* as above... */ }
-    function sectionRisk() { /* as above... */ }
-    function sectionIncidents() { /* as above... */ }
-    function sectionEnforcement() { /* as above... */ }
-    function sectionCommunication() { /* as above... */ }
-    function sectionReview() { /* as above... */ }
-    function sectionSignoff() { /* as above... */ }
-    function sectionAppendix() { /* as above... */ }
+    function sectionScope() {
+      const who = formData.scope==='employees'
+        ? 'All employees'
+        : 'Employees, contractors, interns & partners';
+      return heading(2,'Scope') + `
+<ul>
+  <li><strong>Who</strong> ${who} with access to company systems or data.</li>
+  <li><strong>What</strong> Covers: internally built models, third-party services, generative or decisioning systems.</li>
+  <li><strong>Where/When</strong> All work contexts—on-premises, remote, mobile—on any device.</li>
+</ul><hr>`;
+    }
+
+    function sectionDefinitions() {
+      if (formData.includeDefinitions!=='yes') return '';
+      return heading(3,'Definitions') + `
+<table>
+  <tr><th>Term</th><th>Definition</th></tr>
+  <tr><td><strong>AI</strong></td><td>Systems that perform tasks requiring human intelligence.</td></tr>
+  <tr><td><strong>ML</strong></td><td>Algorithms that learn patterns from data.</td></tr>
+  <tr><td><strong>LLM</strong></td><td>Large Language Models like GPT-4.</td></tr>
+  <tr><td><strong>Personal Data</strong></td><td>Info identifying a person (GDPR/CCPA/Law 25).</td></tr>
+  <tr><td><strong>Trade Secret</strong></td><td>Non-public business info with competitive value.</td></tr>
+  <tr><td><strong>High-Risk AI</strong></td><td>AI that can significantly affect individuals.</td></tr>
+</table><hr>`;
+    }
+
+    function sectionPrivacy() {
+      const bullets = [];
+      if (formData.personalData) bullets.push('Never share personal data with public AI systems without explicit approval.');
+      if (formData.tradeSecrets) bullets.push('Secure trade secrets; do not disclose to unauthorized systems.');
+      if (formData.financialData) bullets.push('Handle financial data under strict compliance protocols.');
+      if (formData.anonymize) bullets.push('De-identify/anonymize data before AI training or testing.');
+      if (formData.encryption) bullets.push('Use encryption & secure environments for all AI data.');
+      if (!bullets.length) return '';
+      return heading(4,'Data Privacy & Security') + `
+<ol>
+  ${bullets.map(txt=>`<li>${txt}</li>`).join('')}
+</ol><hr>`;
+    }
+
+    function sectionProhibited() {
+      const sel = formData.prohibitedUses||[];
+      if (!sel.length && !formData.customProhibited) return '';
+      return heading(5,'Prohibited Use Cases') + `
+<ul>
+  ${sel.map(u=>`<li>${u}</li>`).join('')}
+  ${formData.customProhibited?`<li>${formData.customProhibited}</li>`:''}
+</ul><hr>`;
+    }
+
+    function sectionGovernance() {
+      const inv = formData.approvedTools==='Yes';
+      const ap = formData.requireApproval==='Yes';
+      return heading(6,'Approved Use & Governance') + `
+<ol>
+  <li><strong>Approved Tools</strong> ${inv?'Only official tools may be used.':'No inventory maintained.'}</li>
+  <li><strong>Onboarding</strong> ${ap?'New tools require risk, security & ethics review + sign-off.':'No formal onboarding.'}</li>
+</ol><hr>`;
+    }
+
+    function sectionIP() {
+      const ip = formData.ipOwnership==='Yes';
+      const ts = formData.protectTradeSecrets==='Yes';
+      return heading(7,'Intellectual Property & Trade Secrets') + `
+<ul>
+  <li>${ip?'AI outputs are company-owned IP.':'AI outputs ownership not guaranteed.'}</li>
+  <li>${ts?'Employees must safeguard trade secrets per agreements.':'Standard confidentiality applies.'}</li>
+</ul><hr>`;
+    }
+
+    function sectionBias() {
+      return heading(8,'Fairness & Bias Mitigation') + `
+<ul>
+  <li>Pre-deployment Bias & Fairness Reviews for high-risk AI.</li>
+  <li>Ongoing audits every six months or post-retraining.</li>
+  <li>Remediate or rollback discriminatory models before redeployment.</li>
+</ul><hr>`;
+    }
+
+    function sectionCompliance() {
+      const laws = formData.laws||[];
+      return heading(9,'Compliance & Legal') + `
+<ul>
+  ${(laws.length?laws.map(l=>`<li>Comply with ${l}.</li>`).join('') : '<li>Comply with all applicable privacy laws.</li>')}
+  ${formData.customLaws?`<li>${formData.customLaws}</li>`:''}
+  <li>Follow export controls (e.g., U.S. EAR/ITAR) for cross-border AI/data.</li>
+  <li>Supplements Info Security, Code of Conduct & IP policies.</li>
+</ul><hr>`;
+    }
+
+    function sectionTransparency() {
+      return heading(10,'Transparency & Explainability') + `
+<ul>
+  <li>Disclose in plain language where AI materially affects people.</li>
+  <li>Provide “why” explanations on request.</li>
+</ul><hr>`;
+    }
+
+    function sectionTraining() {
+      return heading(11,'Training & Awareness') + `
+<ul>
+  <li>Mandatory onboarding on AI ethics, data handling & policy.</li>
+  <li>Annual refresher in LMS for all covered roles.</li>
+</ul><hr>`;
+    }
+
+    function sectionVendor() {
+      return heading(12,'Vendor & Third-party Oversight') + `
+<p>${formData.vendorOversight==='Yes'
+    ? 'Vendors must meet our security, privacy & ethics standards before engagement.'
+    : 'No vendor requirements defined.'}</p><hr>`;
+    }
+
+    function sectionRisk() {
+      return heading(13,'Risk Assessment') + `
+<p>${formData.riskAssessment==='Yes'
+    ? 'Mandatory AI risk assessments before deployment for legal, ethical & security impacts.'
+    : 'No formal risk assessments required.'}</p><hr>`;
+    }
+
+    function sectionIncidents() {
+      return heading(14,'Incident Reporting & Response') + `
+<ul>
+  <li>Report to ai-incidents@[company].com or Security Hotline immediately.</li>
+  <li>Triage by Security & Governance lead.</li>
+  <li>Remediation plan within 10 business days.</li>
+  <li>Notify regulators/customers per obligations.</li>
+</ul><hr>`;
+    }
+
+    function sectionEnforcement() {
+      return heading(15,'Enforcement') + `
+<p>${formData.enforcement==='Yes'
+    ? 'Violations may lead to disciplinary action, up to termination and legal action.'
+    : 'No enforcement details specified.'}</p><hr>`;
+    }
+
+    function sectionCommunication() {
+      return heading(16,'Public Communication') + `
+<p>${formData.publicComm==='Yes'
+    ? 'Communications team issues public statements aligned with this policy.'
+    : 'No public statements defined.'}</p><hr>`;
+    }
+
+    function sectionReview() {
+      return heading(17,'Review & Updates') + `
+<ul>
+  <li>Frequency: ${formData.reviewFrequency}.</li>
+  <li>Ownership: ${formData.responsibleTeam||'Governance/Compliance team'}.</li>
+</ul><hr>`;
+    }
+
+    function sectionSignoff() {
+      return heading(18,'Sign-off & Acknowledgment') + `
+<p>All personnel must acknowledge via HR portal within 14 days of publication & each revision.</p><hr>`;
+    }
+
+    function sectionAppendix() {
+      if (formData.includeDefinitions!=='yes') return '';
+      return `<h3>Appendix A – Allowed vs. Disallowed AI Use Cases</h3>
+<table>
+  <tr><th>Allowed (w/ approval)</th><th>Disallowed</th></tr>
+  <tr><td>Drafting marketing copy with approved LLMs on non-confidential data</td><td>Uploading unreleased financials to public LLMs</td></tr>
+  <tr><td>Code completion for open-source projects using Copilot Enterprise</td><td>Training unvetted models on personal support transcripts</td></tr>
+  <tr><td>Sentiment analysis on anonymized feedback</td><td>Auto-rejecting candidates w/o human review</td></tr>
+</table>
+<h3>Appendix B – Approved AI Tools & Vendors</h3>
+<ul>
+  <li>Copilot Enterprise (GitHub) – vX.Y</li>
+  <li>OpenAI ChatGPT Enterprise – GPT-4o-2025-06</li>
+  <li>Internal “Aurora” Model – v3.2</li>
+</ul>
+<h3>Appendix C – Quick Do’s & Don’ts</h3>
+<p><strong>Do:</strong></p>
+<ul>
+  <li>Remove identifiers before sharing data.</li>
+  <li>Use only tools on the Approved list.</li>
+  <li>Document prompts & data sources for audits.</li>
+</ul>
+<p><strong>Don’t:</strong></p>
+<ul>
+  <li>Paste customer data into public chats.</li>
+  <li>Use AI for sensitive decisions w/o human oversight.</li>
+  <li>Deploy models before completing risk assessments.</li>
+</ul>`;
+    }
 
     function renderFinal() {
       let out = '';
@@ -303,7 +456,7 @@
       alert('Policy copied!');
     }
 
-    // Initialize
+    // Initialize wizard
     renderStep();
   </script>
 </body>
