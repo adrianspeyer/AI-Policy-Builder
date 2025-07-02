@@ -66,8 +66,11 @@
       info:`Select from the top-20 AI tools list and optionally add any other tools your organization uses.` },
 
     // Risk Classification Mode
-    { id:'riskMode', title:'Risk Classification Mode', fields:['riskMode'],
-      info:`
+  { 
+    id:   'riskMode',
+    title:'Risk Classification Mode',
+    fields:['riskMode'],
+    info: `
 <p><strong>Risk Classification</strong><br>
 “Classify this AI system as High, Medium, or Low risk.<br>
 • High Risk: Handles sensitive personal or proprietary data, drives critical decisions (hiring, lending, medical), or is subject to strict regulatory oversight.<br>
@@ -78,11 +81,17 @@ Use this classification to determine how rigorously you apply reviews, testing, 
 <select id="riskMode">
   <option value="global">Global (one level for all)</option>
   <option value="perTool">Per-Tool (custom per tool)</option>
-</select>` },
+</select>
+` 
+  },
 
-    // Global Risk Level
-    { id:'riskClassification', title:'Global Risk Level', fields:['riskClassification'],
-      info:`<p><strong>Risk Classification</strong><br>
+  // Global Risk Level
+  {
+    id:   'riskClassification',
+    title:'Global Risk Level',
+    fields:['riskClassification'],
+    info: `
+<p><strong>Risk Classification</strong><br>
 “Classify this AI system as High, Medium, or Low risk.<br>
 • High Risk: Handles sensitive personal or proprietary data, drives critical decisions (hiring, lending, medical), or is subject to strict regulatory oversight.<br>
 • Medium Risk: Processes less sensitive data or supports semi-automated decisions with human review.<br>
@@ -93,17 +102,25 @@ Use this classification to determine how rigorously you apply reviews, testing, 
   <option>High</option>
   <option>Medium</option>
   <option>Low</option>
-</select>` },
+</select>
+`
+  },
 
-    // Per-Tool Risk Classification
-    { id:'riskPerTool', title:'Per-Tool Risk Classification', fields:['riskPerTool'],
-      info:`<p><strong>Risk Classification</strong><br>
+  // Per-Tool Risk Classification
+  {
+    id:   'riskPerTool',
+    title:'Per-Tool Risk Classification',
+    fields:['riskPerTool'],
+    info: `
+<p><strong>Risk Classification</strong><br>
 “Classify this AI system as High, Medium, or Low risk.<br>
 • High Risk: Handles sensitive personal or proprietary data, drives critical decisions (hiring, lending, medical), or is subject to strict regulatory oversight.<br>
 • Medium Risk: Processes less sensitive data or supports semi-automated decisions with human review.<br>
 • Low Risk: Used for general, non-sensitive tasks (e.g., marketing copy generation with public data).<br>
-Use this classification to determine how rigorously you apply reviews, testing, monitoring, and controls.”</p>` },
-
+Use this classification to determine how rigorously you apply reviews, testing, monitoring, and controls.”</p>
+<!-- the actual per-tool selects are generated in getFieldHTML -->
+`
+  },
     // Data Privacy & Security
     { id:'privacy', title:'Data Privacy & Security', fields:['personalData','financialData','tradeSecrets','anonymize','encryption'],
       info:`Specify which data types AI will handle and whether anonymization or encryption is required.` },
