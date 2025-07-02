@@ -254,41 +254,57 @@ Use this classification to determine how rigorously you apply reviews, testing, 
 
       // Risk Classification Mode
       case 'riskMode':
-        return getFieldHTML('') ; // handled inline in PART1
-
-      // Global Risk Level
-      case 'riskClassification':
-        return getFieldHTML('') ; // inline
-
-      // Per-Tool Risk Classification
-      case 'riskPerTool':
-        const tools = formData.approvedToolsList || [];
-        let html = `<table>
-                      <tr><th>Level</th><th>Definition</th></tr>
-                      <tr><td><strong>High Risk</strong></td>
-                          <td>Handles sensitive data or critical decisions; subject to strict oversight.</td></tr>
-                      <tr><td><strong>Medium Risk</strong></td>
-                          <td>Processes less sensitive data; supports human-in-the-loop.</td></tr>
-                      <tr><td><strong>Low Risk</strong></td>
-                          <td>Non-sensitive, general tasks (e.g., marketing copy).</td></tr>
-                    </table>`;
-        if (!tools.length && !formData.customTool) {
-          html += `<p><em>No tools selected—go back and choose at least one.</em></p>`;
-        } else {
-          tools.forEach((tool,i) => {
-            html += `<label>Risk for “${tool}”:</label>
-                     <select id="riskTool_${i}">
-                       <option>High</option><option>Medium</option><option>Low</option>
-                     </select><br>`;
-          });
-          if (formData.customTool) {
-            html += `<label>Risk for “${formData.customTool}”:</label>
-                     <select id="riskTool_custom">
-                       <option>High</option><option>Medium</option><option>Low</option>
-                     </select><br>`;
-          }
-        }
-        return html;
+      return `
+        <table>
+          <tr><th>Level</th><th>Definition</th></tr>
+          <tr><td><strong>High Risk</strong></td><td>Handles sensitive data or critical decisions; strict oversight.</td></tr>
+          <tr><td><strong>Medium Risk</strong></td><td>Less sensitive data; human-in-the-loop.</td></tr>
+          <tr><td><strong>Low Risk</strong></td><td>General, non-sensitive tasks.</td></tr>
+        </table>
+        <label>Risk mode:</label>
+        <select id="riskMode">
+          <option value="global">Global (one level for all)</option>
+          <option value="perTool">Per-Tool (custom per tool)</option>
+        </select>
+      `;
+    
+    case 'riskClassification':
+      return `
+        <label>Select global risk level:</label>
+        <select id="riskClassification">
+          <option>High</option>
+          <option>Medium</option>
+          <option>Low</option>
+        </select>
+      `;
+    
+    case 'riskPerTool':
+      const tools = formData.approvedToolsList || [];
+      let html = `
+        <table>
+          <tr><th>Level</th><th>Definition</th></tr>
+          <tr><td><strong>High Risk</strong></td><td>Handles sensitive data/critical decisions.</td></tr>
+          <tr><td><strong>Medium Risk</strong></td><td>Less sensitive data; human review.</td></tr>
+          <tr><td><strong>Low Risk</strong></td><td>General, non-sensitive tasks.</td></tr>
+        </table>
+      `;
+      tools.forEach((tool, i) => {
+        html += `
+          <label>Risk for “${tool}”:</label>
+          <select id="riskTool_${i}">
+            <option>High</option><option>Medium</option><option>Low</option>
+          </select><br>
+        `;
+      });
+      if (formData.customTool) {
+        html += `
+          <label>Risk for “${formData.customTool}”:</label>
+          <select id="riskTool_custom">
+            <option>High</option><option>Medium</option><option>Low</option>
+          </select><br>
+        `;
+      }
+      return html;
 
       // Data Privacy & Security
       case 'personalData':    return `<label><input type="checkbox" id="personalData"> Handle personal data</label>`;
