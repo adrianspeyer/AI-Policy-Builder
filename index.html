@@ -6,30 +6,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body { font-family: Arial, sans-serif; margin:0; background:#f5f5f5; color:#333; }
-    .container { max-width:900px; margin:40px auto; background:white; padding:30px; border-radius:8px; 
+    .container { max-width:900px; margin:40px auto; background:white; padding:30px; border-radius:8px;
                  box-shadow:0 0 10px rgba(0,0,0,0.1); }
     h1,h2,h3 { color:#005b96; }
     label { display:block; margin-top:10px; font-weight:bold; }
-    input[type="text"], select, textarea { width:100%; padding:8px; margin:4px 0 12px; 
-                                            border:1px solid #ccc; border-radius:4px; }
+    input[type="text"], select, textarea { width:100%; padding:8px; margin:4px 0 12px;
+                                           border:1px solid #ccc; border-radius:4px; }
     textarea { height:80px; }
-    button { margin:10px 5px 0 0; padding:10px 18px; background:#005b96; color:white; 
+    button { margin:10px 5px 0 0; padding:10px 18px; background:#005b96; color:white;
              border:none; border-radius:4px; cursor:pointer; }
     button:hover { background:#003f6d; }
     .skip-btn { background:#999; } .skip-btn:hover { background:#777; }
     .info-icon { cursor:pointer; font-size:1.2em; margin-left:5px; }
-    .policy-output { background:#f9f9f9; padding:20px; border:1px dashed #999; 
+    .policy-output { background:#f9f9f9; padding:20px; border:1px dashed #999;
                      border-radius:6px; max-height:600px; overflow-y:auto; }
-    .modal { display:none; position:fixed; z-index:1000; top:0; left:0; width:100%; height:100%; 
+    .modal { display:none; position:fixed; z-index:1000; top:0; left:0; width:100%; height:100%;
              background:rgba(0,0,0,0.6); padding-top:60px; }
-    .modal-content { background:white; margin:auto; padding:20px; border:1px solid #888; 
+    .modal-content { background:white; margin:auto; padding:20px; border:1px solid #888;
                      width:80%; max-width:500px; border-radius:8px; position:relative; }
     .close-btn { position:absolute; right:15px; top:10px; font-size:20px; font-weight:bold; cursor:pointer; }
     .close-btn:hover { color:red; }
     hr { margin:20px 0; } ul { margin-left:20px; }
     table { width:100%; border-collapse:collapse; margin:10px 0; }
     table, th, td { border:1px solid #ccc; } th, td { padding:8px; text-align:left; }
-    #progressContainer { width:100%; background:#e0e0e0; height:12px; border-radius:6px; overflow:hidden; 
+    #progressContainer { width:100%; background:#e0e0e0; height:12px; border-radius:6px; overflow:hidden;
                          margin-top:20px; }
     #progressBar { width:0%; height:100%; background:#005b96; transition:width 0.3s; }
   </style>
@@ -51,155 +51,91 @@
   </div>
 
 <script>
-  // Define each wizard step
+  // 1) Steps definition
   const steps = [
     { id:'company', title:'Company Info', fields:['companyName','industry','jurisdiction','tone'],
       info:`Enter your legal business name, primary industry (e.g., Healthcare), and governing jurisdiction (e.g., Montreal, Quebec). Choose Formal Legal or Plain Language tone.` },
-
     { id:'scope', title:'Scope', fields:['scope'],
       info:`Define who (employees, contractors, interns, partners) and what (internal models, third-party AI, environments) this policy covers.` },
-
     { id:'definitions', title:'Definitions', fields:['includeDefinitions'],
       info:`Include detailed definitions of AI, ML, LLMs, personal data, trade secrets, high-risk AI, etc., plus an appendix of examples.` },
-
     { id:'tools', title:'Approved AI Tools', fields:['approvedToolsList','customTool'],
       info:`Select from the top-20 AI tools list and optionally add any other tools your organization uses.` },
-
-    // Risk Classification Mode
-  {
-  id: 'riskMode',
-  title: 'Risk Classification Mode',
-  fields: ['riskMode'],
-  info: `
+    { id:'riskMode', title:'Risk Classification Mode', fields:['riskMode'],
+      info: `
 <p><strong>Risk Classification</strong><br>
 “Classify this AI system as High, Medium, or Low risk.<br>
-• High Risk: Handles sensitive personal or proprietary data, drives critical decisions (hiring, lending, medical), or is subject to strict regulatory oversight.<br>
-• Medium Risk: Processes less sensitive data or supports semi-automated decisions with human review.<br>
-• Low Risk: Used for general, non-sensitive tasks (e.g., marketing copy generation with public data).<br>
-Use this classification to determine how rigorously you apply reviews, testing, monitoring, and controls.”</p>
+• High Risk: Handles sensitive or proprietary data; drives critical decisions; under strict oversight.<br>
+• Medium Risk: Processes less sensitive data; supports human review.<br>
+• Low Risk: General, non-sensitive tasks.”</p>
 <label>Risk mode:</label>
 <select id="riskMode">
   <option value="global">Global (one level for all)</option>
   <option value="perTool">Per-Tool (custom per tool)</option>
 </select>
-`
-},
+` },
+    { id:'riskClassification', title:'Global Risk Level', fields:['riskClassification'],
+      info: `
+<p>Select a single risk level for all tools:</p>
+<ul>
+  <li><strong>High</strong> – Full security, bias & ethics review.</li>
+  <li><strong>Medium</strong> – Periodic audits & human oversight.</li>
+  <li><strong>Low</strong> – Standard monitoring.</li>
+</ul>` },
+    { id:'riskPerTool', title:'Per-Tool Risk Classification', fields:['riskPerTool'],
+      info: `
+<p>Assign each tool a risk level. Refer to definitions of High, Medium, Low.</p>` },
 
-  // Global Risk Level
-  {
-    id:   'riskClassification',
-    title:'Global Risk Level',
-    fields:['riskClassification'],
-    info: `
-<p><strong>Risk Classification</strong><br>
-“Classify this AI system as High, Medium, or Low risk.<br>
-• High Risk: Handles sensitive personal or proprietary data, drives critical decisions (hiring, lending, medical), or is subject to strict regulatory oversight.<br>
-• Medium Risk: Processes less sensitive data or supports semi-automated decisions with human review.<br>
-• Low Risk: Used for general, non-sensitive tasks (e.g., marketing copy generation with public data).<br>
-Use this classification to determine how rigorously you apply reviews, testing, monitoring, and controls.”</p>
-<label>Select global risk level:</label>
-<select id="riskClassification">
-  <option>High</option>
-  <option>Medium</option>
-  <option>Low</option>
-</select>
-`
-  },
-
-  // Per-Tool Risk Classification
-  {
-    id:   'riskPerTool',
-    title:'Per-Tool Risk Classification',
-    fields:['riskPerTool'],
-    info: `
-<p><strong>Risk Classification</strong><br>
-“Classify this AI system as High, Medium, or Low risk.<br>
-• High Risk: Handles sensitive personal or proprietary data, drives critical decisions (hiring, lending, medical), or is subject to strict regulatory oversight.<br>
-• Medium Risk: Processes less sensitive data or supports semi-automated decisions with human review.<br>
-• Low Risk: Used for general, non-sensitive tasks (e.g., marketing copy generation with public data).<br>
-Use this classification to determine how rigorously you apply reviews, testing, monitoring, and controls.”</p>
-<!-- the actual per-tool selects are generated in getFieldHTML -->
-`
-  },
-    // Data Privacy & Security
     { id:'privacy', title:'Data Privacy & Security', fields:['personalData','financialData','tradeSecrets','anonymize','encryption'],
       info:`Specify which data types AI will handle and whether anonymization or encryption is required.` },
-
-    // Prohibited Use Cases
     { id:'prohibited', title:'Prohibited Use Cases', fields:['prohibitedUses','customProhibited'],
       info:`Select common prohibited scenarios (e.g., confidential uploads, automated legal/medical advice) and add custom ones.` },
-
-    // Approved Use & Governance
     { id:'governance', title:'Approved Use & Governance', fields:['requireApproval'],
-      info:`Decide if new AI tools require a formal risk, security & ethics review before approval.` },
-
-    // IP & Trade Secrets
+      info:`Decide if new AI tools require formal risk, security & ethics review before approval.` },
     { id:'ip', title:'IP & Trade Secrets', fields:['ipOwnership','protectTradeSecrets'],
-      info:`Clarify ownership of AI outputs and trade-secret protection requirements.` },
-
-    // Fairness & Bias Mitigation
+      info:`Clarify ownership of AI outputs and trade-secret protection rules.` },
     { id:'fairness', title:'Fairness & Bias Mitigation', fields:['biasReview','biasAuditFrequency','customBiasRequirements'],
-      info:`State bias review requirements, audit frequency, and any additional fairness controls.` },
-
-    // Compliance & Legal
+      info:`State bias review requirements, audit frequency, and extra fairness controls.` },
     { id:'compliance', title:'Compliance & Legal', fields:['laws','customLaws','exportControls','customExport'],
-      info:`Select all privacy laws and export-control regimes that apply. Full details in the modal ℹ️.` },
-
-    // Transparency & Explainability
+      info:`Select all applicable privacy laws & export-control regimes. Full details in modal ℹ️.` },
     { id:'transparency', title:'Transparency & Explainability', fields:['publicDisclosure','explainability'],
-      info:`Decide if the policy is public and if employees must explain AI decisions.` },
-
-    // Training & Awareness
+      info:`Decide if policy is public and if employees must explain AI decisions.` },
     { id:'training', title:'Training & Awareness', fields:['training','trainingDetails','acknowledgment','ackDetails'],
-      info:`Outline mandatory training content and how employees will acknowledge this policy.` },
-
-    // Vendor & Contract Clauses
+      info:`Outline mandatory training content and how employees acknowledge this policy.` },
     { id:'vendorContracts', title:'Vendor & Contract Clauses', fields:['vendorClauses','customVendorClauses'],
-      info:`Require security, privacy & ethics clauses in third-party AI agreements.` },
-
-    // Data Retention
+      info:`Require security, privacy & ethics clauses in third-party AI contracts.` },
     { id:'dataRetention', title:'Data Retention', fields:['dataRetention','customDataRetention'],
-      info:`Specify data and log retention periods for AI systems.` },
-
-    // Logging & Monitoring
+      info:`Specify retention periods for AI data, logs, and artifacts.` },
     { id:'logging', title:'Logging & Monitoring', fields:['enableLogging','logRetention','customLogRetention'],
       info:`Enable usage logging and set log retention periods.` },
-
-    // AI in Marketing & Community Content
-    { id:'marketing', title:'AI in Marketing & Community Content', 
+    { id:'marketing', title:'AI in Marketing & Community Content',
       fields:[
         'socialChannels','customSocialChannels',
         'creativeTools','customCreativeTools',
         'approvalName','approvalEmail','approvalPhone','approvalSlack','approvalTeams',
         'cautionPersonal','cautionDetails'
       ],
-      info:`Define rules for AI-generated social, marketing & community content, including approvals and personal-account cautions.` 
-    },
-
-    // Incident Reporting & Response
+      info:`Define rules for AI-generated social, marketing & community content—including approvals and personal-account cautions.` },
     { id:'incidents', title:'Incident Reporting & Response', fields:['incidentEmail','incidentPhone','incidentSlack','incidentTeams'],
-      info:`Provide email, phone, Slack and Teams channels for immediate incident reporting.` },
-
-    // Review & Updates
+      info:`Provide email, phone, Slack & Teams channels for immediate incident reporting.` },
     { id:'review', title:'Review & Updates', fields:['reviewFrequency','responsibleTeam'],
       info:`Choose how often to review this policy and which team owns it.` },
-
-    // Sign-off & Acknowledgment
     { id:'signoff', title:'Sign-off & Acknowledgment', fields:['signOff'],
       info:`Decide if employees must sign or click-acknowledge before using AI.` }
   ];
 
-  const formData = {};
-  let currentStep = 0;
+  // 2) State & DOM refs
+  const formData    = {};
+  let   currentStep = 0;
   const wizardDiv   = document.getElementById('wizard');
   const progressBar = document.getElementById('progressBar');
   const modal       = document.getElementById('infoModal');
   const modalText   = document.getElementById('modalText');
   const closeModal  = document.getElementById('closeModal');
 
+  // 3) Render fields
   function getFieldHTML(f) {
     switch(f) {
-      // Company Info
       case 'companyName':
         return '<label>Company Name:</label><input type="text" id="companyName">';
       case 'industry':
@@ -219,21 +155,15 @@ Use this classification to determine how rigorously you apply reviews, testing, 
                   <option value="formal">Formal Legal</option>
                   <option value="plain">Plain Language</option>
                 </select>`;
-
-      // Scope
       case 'scope':
         return `<label>Applies to:</label>
                 <select id="scope">
                   <option value="all">All employees, contractors, interns & partners</option>
                   <option value="employees">Employees only</option>
                 </select>`;
-
-      // Definitions
       case 'includeDefinitions':
         return `<label>Include definitions & appendix?</label>
                 <select id="includeDefinitions"><option>Yes</option><option>No</option></select>`;
-
-      // Approved AI Tools
       case 'approvedToolsList':
         return `<label>Approved AI Tools:</label>
                 <select id="approvedToolsList" multiple size="5">
@@ -251,10 +181,8 @@ Use this classification to determine how rigorously you apply reviews, testing, 
       case 'customTool':
         return `<label>Other tools:</label>
                 <textarea id="customTool" placeholder="Add additional AI tools…"></textarea>`;
-
-      // Risk Classification Mode
       case 'riskMode':
-      return `
+        return `
         <table>
           <tr><th>Level</th><th>Definition</th></tr>
           <tr><td><strong>High Risk</strong></td><td>Handles sensitive data or critical decisions; strict oversight.</td></tr>
@@ -265,55 +193,46 @@ Use this classification to determine how rigorously you apply reviews, testing, 
         <select id="riskMode">
           <option value="global">Global (one level for all)</option>
           <option value="perTool">Per-Tool (custom per tool)</option>
-        </select>
-      `;
-    
-    case 'riskClassification':
-      return `
+        </select>`;
+      case 'riskClassification':
+        return `
         <label>Select global risk level:</label>
         <select id="riskClassification">
-          <option>High</option>
-          <option>Medium</option>
-          <option>Low</option>
-        </select>
-      `;
-    
-    case 'riskPerTool':
-      const tools = formData.approvedToolsList || [];
-      let html = `
+          <option>High</option><option>Medium</option><option>Low</option>
+        </select>`;
+      case 'riskPerTool':
+        const tools = formData.approvedToolsList || [];
+        let html = `
         <table>
           <tr><th>Level</th><th>Definition</th></tr>
           <tr><td><strong>High Risk</strong></td><td>Handles sensitive data/critical decisions.</td></tr>
           <tr><td><strong>Medium Risk</strong></td><td>Less sensitive data; human review.</td></tr>
           <tr><td><strong>Low Risk</strong></td><td>General, non-sensitive tasks.</td></tr>
-        </table>
-      `;
-      tools.forEach((tool, i) => {
-        html += `
-          <label>Risk for “${tool}”:</label>
-          <select id="riskTool_${i}">
-            <option>High</option><option>Medium</option><option>Low</option>
-          </select><br>
-        `;
-      });
-      if (formData.customTool) {
-        html += `
-          <label>Risk for “${formData.customTool}”:</label>
-          <select id="riskTool_custom">
-            <option>High</option><option>Medium</option><option>Low</option>
-          </select><br>
-        `;
-      }
-      return html;
-
-      // Data Privacy & Security
-      case 'personalData':    return `<label><input type="checkbox" id="personalData"> Handle personal data</label>`;
-      case 'financialData':   return `<label><input type="checkbox" id="financialData"> Handle financial data</label>`;
-      case 'tradeSecrets':    return `<label><input type="checkbox" id="tradeSecrets"> Handle trade secrets/IP</label>`;
-      case 'anonymize':       return `<label><input type="checkbox" id="anonymize"> Require anonymization</label>`;
-      case 'encryption':      return `<label>Require encryption?</label><select id="encryption"><option>Yes</option><option>No</option></select>`;
-
-      // Prohibited Use Cases
+        </table>`;
+        if (!tools.length && !formData.customTool) {
+          html += `<p><em>No tools selected—go back and choose at least one.</em></p>`;
+        } else {
+          tools.forEach((tool,i) => {
+            html += `
+            <label>Risk for “${tool}”:</label>
+            <select id="riskTool_${i}">
+              <option>High</option><option>Medium</option><option>Low</option>
+            </select><br>`;
+          });
+          if (formData.customTool) {
+            html += `
+            <label>Risk for “${formData.customTool}”:</label>
+            <select id="riskTool_custom">
+              <option>High</option><option>Medium</option><option>Low</option>
+            </select><br>`;
+          }
+        }
+        return html;
+      case 'personalData':  return `<label><input type="checkbox" id="personalData"> Handle personal data</label>`;
+      case 'financialData': return `<label><input type="checkbox" id="financialData"> Handle financial data</label>`;
+      case 'tradeSecrets':  return `<label><input type="checkbox" id="tradeSecrets"> Handle trade secrets/IP</label>`;
+      case 'anonymize':     return `<label><input type="checkbox" id="anonymize"> Require anonymization</label>`;
+      case 'encryption':    return `<label>Require encryption?</label><select id="encryption"><option>Yes</option><option>No</option></select>`;
       case 'prohibitedUses':
         return `<label>Prohibited use cases:</label>
                 <select id="prohibitedUses" multiple>
@@ -324,22 +243,16 @@ Use this classification to determine how rigorously you apply reviews, testing, 
                 </select>`;
       case 'customProhibited':
         return `<label>Other prohibited uses:</label>
-                <textarea id="customProhibited" placeholder="Describe…"></textarea>`;
-
-      // Approved Use & Governance
+                <textarea id="customProhibited" placeholder="…"></textarea>`;
       case 'requireApproval':
         return `<label>Require review for new tools?</label>
                 <select id="requireApproval"><option>Yes</option><option>No</option></select>`;
-
-      // IP & Trade Secrets
       case 'ipOwnership':
         return `<label>Company-owned AI outputs?</label>
                 <select id="ipOwnership"><option>Yes</option><option>No</option></select>`;
       case 'protectTradeSecrets':
         return `<label>Emphasize trade-secret protection?</label>
                 <select id="protectTradeSecrets"><option>Yes</option><option>No</option></select>`;
-
-      // Fairness & Bias Mitigation
       case 'biasReview':
         return `<label>Require bias audits?</label>
                 <select id="biasReview"><option>Yes</option><option>No</option></select>`;
@@ -349,8 +262,6 @@ Use this classification to determine how rigorously you apply reviews, testing, 
       case 'customBiasRequirements':
         return `<label>Additional fairness controls:</label>
                 <textarea id="customBiasRequirements" placeholder="…"></textarea>`;
-
-      // Compliance & Legal ON-PAGE
       case 'laws':
         return `<label>Applicable laws:</label>
                 <select id="laws" multiple>
@@ -373,16 +284,12 @@ Use this classification to determine how rigorously you apply reviews, testing, 
       case 'customExport':
         return `<label>Other regimes:</label>
                 <textarea id="customExport" placeholder="…"></textarea>`;
-
-      // Transparency & Explainability
       case 'publicDisclosure':
         return `<label>Share policy publicly?</label>
                 <select id="publicDisclosure"><option>Yes</option><option>No</option></select>`;
       case 'explainability':
         return `<label>Require explainability?</label>
                 <select id="explainability"><option>Yes</option><option>No</option></select>`;
-
-      // Training & Awareness
       case 'training':
         return `<label>Mandatory training?</label>
                 <select id="training"><option>Yes</option><option>No</option></select>`;
@@ -395,36 +302,26 @@ Use this classification to determine how rigorously you apply reviews, testing, 
       case 'ackDetails':
         return `<label>Acknowledgment instructions:</label>
                 <textarea id="ackDetails" placeholder="…"></textarea>`;
-
-      // Vendor & Contracts
       case 'vendorClauses':
         return `<label>Include vendor clauses?</label>
                 <select id="vendorClauses"><option>Yes</option><option>No</option></select>`;
       case 'customVendorClauses':
         return `<label>Vendor clause details:</label>
                 <textarea id="customVendorClauses" placeholder="…"></textarea>`;
-
-      // Data Retention
       case 'dataRetention':
         return `<label>Retention period:</label>
-                <select id="dataRetention"><option>1 year</option><option>3 years</option>
-                <option>5 years</option><option>Indefinite</option></select>`;
+                <select id="dataRetention"><option>1 year</option><option>3 years</option><option>5 years</option><option>Indefinite</option></select>`;
       case 'customDataRetention':
         return `<label>Other retention:</label>
                 <textarea id="customDataRetention" placeholder="…"></textarea>`;
-
-      // Logging & Monitoring
       case 'enableLogging':
         return `<label><input type="checkbox" id="enableLogging"> Enable usage logging</label>`;
       case 'logRetention':
         return `<label>Log retention:</label>
-                <select id="logRetention"><option>6 months</option><option>1 year</option>
-                <option>3 years</option><option>Indefinite</option></select>`;
+                <select id="logRetention"><option>6 months</option><option>1 year</option><option>3 years</option><option>Indefinite</option></select>`;
       case 'customLogRetention':
         return `<label>Other log policy:</label>
                 <textarea id="customLogRetention" placeholder="…"></textarea>`;
-
-      // Marketing & Community
       case 'socialChannels':
         return `<label>Social channels:</label>
                 <select id="socialChannels" multiple>
@@ -443,62 +340,65 @@ Use this classification to determine how rigorously you apply reviews, testing, 
       case 'customCreativeTools':
         return `<label>Other creative tools:</label>
                 <textarea id="customCreativeTools" placeholder="…"></textarea>`;
-      case 'approvalName':   return `<label>Approval team/name:</label><input type="text" id="approvalName">`;
-      case 'approvalEmail':  return `<label>Approval email:</label><input type="text" id="approvalEmail">`;
-      case 'approvalPhone':  return `<label>Approval phone:</label><input type="text" id="approvalPhone">`;
-      case 'approvalSlack':  return `<label>Approval Slack channel:</label><input type="text" id="approvalSlack">`;
-      case 'approvalTeams':  return `<label>Approval Teams channel:</label><input type="text" id="approvalTeams">`;
-      case 'cautionPersonal':return `<label><input type="checkbox" id="cautionPersonal"> Caution using company data on personal accounts</label>`;
-      case 'cautionDetails': return `<label>Caution details:</label><textarea id="cautionDetails" placeholder="…"></textarea>`;
-
-      // Incidents
-      case 'incidentEmail': return `<label>Incident email:</label><input type="text" id="incidentEmail">`;      
-      case 'incidentPhone': return `<label>Incident phone:</label><input type="text" id="incidentPhone">`;      
-      case 'incidentSlack': return `<label>Incident Slack channel:</label><input type="text" id="incidentSlack">`;      
-      case 'incidentTeams': return `<label>Incident Teams channel:</label><input type="text" id="incidentTeams">`;
-
-      // Review & Sign-off
+      case 'approvalName':
+        return `<label>Approval team/name:</label><input type="text" id="approvalName">`;
+      case 'approvalEmail':
+        return `<label>Approval email:</label><input type="text" id="approvalEmail">`;
+      case 'approvalPhone':
+        return `<label>Approval phone:</label><input type="text" id="approvalPhone">`;
+      case 'approvalSlack':
+        return `<label>Approval Slack channel:</label><input type="text" id="approvalSlack">`;
+      case 'approvalTeams':
+        return `<label>Approval Teams channel:</label><input type="text" id="approvalTeams">`;
+      case 'cautionPersonal':
+        return `<label><input type="checkbox" id="cautionPersonal"> Caution using company data on personal accounts</label>`;
+      case 'cautionDetails':
+        return `<label>Caution details:</label><textarea id="cautionDetails" placeholder="…"></textarea>`;
+      case 'incidentEmail':
+        return `<label>Incident email:</label><input type="text" id="incidentEmail">`;
+      case 'incidentPhone':
+        return `<label>Incident phone:</label><input type="text" id="incidentPhone">`;
+      case 'incidentSlack':
+        return `<label>Incident Slack channel:</label><input type="text" id="incidentSlack">`;
+      case 'incidentTeams':
+        return `<label>Incident Teams channel:</label><input type="text" id="incidentTeams">`;
       case 'reviewFrequency':
         return `<label>Review frequency:</label>
                 <select id="reviewFrequency"><option>Annually</option><option>Semi-annual</option><option>As needed</option></select>`;
       case 'responsibleTeam':
         return `<label>Responsible team:</label><input type="text" id="responsibleTeam">`;
       case 'signOff':
-        return `<label>Require sign-off?</label>
-                <select id="signOff"><option>Yes</option><option>No</option></select>`;
-
+        return `<label>Require sign-off?</label><select id="signOff"><option>Yes</option><option>No</option></select>`;
       default:
         return '';
     }
   }
 
-  // Full modal content for Compliance & Legal
+  // 4) Modal handling
   closeModal.onclick = () => modal.style.display = 'none';
   function showInfo(txt) {
-    // If the txt is the compliance step header, override with full details
     if (steps[currentStep].id === 'compliance') {
       modalText.innerHTML = `
         <h3>Compliance & Legal – Details</h3>
         <ul>
-          <li><strong>GDPR (EU):</strong> EU regulation on personal data privacy. 
+          <li><strong>GDPR (EU):</strong> EU data-privacy regulation.
               <a href="https://gdpr.eu" target="_blank">Learn more</a></li>
-          <li><strong>CCPA/CPRA (California):</strong> California law granting consumer data rights. 
+          <li><strong>CCPA/CPRA:</strong> California consumer data rights.
               <a href="https://oag.ca.gov/privacy/ccpa" target="_blank">Learn more</a></li>
-          <li><strong>Quebec Law 25:</strong> Quebec law modernizing private‐sector privacy. 
+          <li><strong>Quebec Law 25:</strong> Modernizes private-sector privacy.
               <a href="https://www.legisquebec.gouv.qc.ca/en/document/cs/P-39.1" target="_blank">Learn more</a></li>
-          <li><strong>PIPEDA (Canada):</strong> Federal private‐sector data protection law. 
-              <a href="https://www.priv.gc.ca/en/privacy-topics/privacy-laws-in-canada/the-personal-information-protection-and-electronic-documents-act-pipeda/" 
-                 target="_blank">Learn more</a></li>
-          <li><strong>HIPAA (US):</strong> US law protecting medical information privacy. 
+          <li><strong>PIPEDA (Canada):</strong> Federal private-sector privacy.
+              <a href="https://www.priv.gc.ca/en/privacy-topics/privacy-laws-in-canada/the-personal-information-protection-and-electronic-documents-act-pipeda/" target="_blank">Learn more</a></li>
+          <li><strong>HIPAA (US):</strong> Medical info privacy.
               <a href="https://www.hhs.gov/hipaa" target="_blank">Learn more</a></li>
         </ul>
         <h4>Export Controls</h4>
         <ul>
-          <li><strong>U.S. EAR/ITAR:</strong> US export regulations on defense & high‐tech goods. 
+          <li><strong>U.S. EAR/ITAR:</strong>
               <a href="https://www.bis.doc.gov/index.php/policy-guidance/ear" target="_blank">Learn more</a></li>
-          <li><strong>EU Dual‐use:</strong> EU controls on dual‐use items. 
+          <li><strong>EU Dual-use:</strong>
               <a href="https://trade.ec.europa.eu/doclib/html/157807.htm" target="_blank">Learn more</a></li>
-          <li><strong>UK Export Controls:</strong> UK regime for controlled goods. 
+          <li><strong>UK Export Controls:</strong>
               <a href="https://www.gov.uk/guidance/export-controls-brochure" target="_blank">Learn more</a></li>
         </ul>`;
     } else {
@@ -507,19 +407,19 @@ Use this classification to determine how rigorously you apply reviews, testing, 
     modal.style.display = 'block';
   }
 
+  // 5) Save & navigation
   function saveStepData() {
     steps[currentStep].fields.forEach(f => {
       if (f.startsWith('riskTool_')) return;
       const el = document.getElementById(f);
       if (!el) return;
-      if (el.type === 'checkbox') formData[f] = el.checked;
-      else if (el.multiple) formData[f] = [...el.selectedOptions].map(o => o.value);
-      else formData[f] = el.value;
+      if (el.type==='checkbox')      formData[f] = el.checked;
+      else if (el.multiple)          formData[f] = [...el.selectedOptions].map(o=>o.value);
+      else                           formData[f] = el.value;
     });
-    // Capture per-tool risk levels
-    if (steps[currentStep].id === 'riskPerTool') {
+    if (steps[currentStep].id==='riskPerTool') {
       formData.toolRisks = {};
-      (formData.approvedToolsList || []).forEach((tool,i) => {
+      (formData.approvedToolsList||[]).forEach((tool,i)=>{
         formData.toolRisks[tool] = document.getElementById(`riskTool_${i}`).value;
       });
       if (formData.customTool) {
@@ -530,61 +430,52 @@ Use this classification to determine how rigorously you apply reviews, testing, 
 
   function prevStep() {
     currentStep = Math.max(0, currentStep - 1);
+    // skip risk mismatches backwards
+    while (currentStep>0) {
+      const s=steps[currentStep];
+      if (s.id==='riskPerTool' && formData.riskMode!=='perTool'){ currentStep--; continue; }
+      if (s.id==='riskClassification' && formData.riskMode==='perTool'){ currentStep--; continue; }
+      break;
+    }
     renderStep();
   }
-  function nextStep() {
-    saveStepData();
-    currentStep++;
-    renderStep();
-  }
-  function skipStep() {
-    currentStep++;
-    renderStep();
-  }
+  function nextStep() { saveStepData(); currentStep++; renderStep(); }
+  function skipStep() { currentStep++; renderStep(); }
+  window.onclick = e => { if (e.target===modal) modal.style.display='none'; };
 
-  window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
-
+  // 6) renderStep
   function renderStep() {
     if (currentStep >= steps.length) return renderFinal();
     const s = steps[currentStep];
-    // Skip global/per-tool mismatch
-    if (s.id==='riskPerTool' && formData.riskMode!=='perTool') {
-      currentStep++; return renderStep();
-    }
-    if (s.id==='riskClassification' && formData.riskMode==='perTool') {
-      currentStep++; return renderStep();
-    }
-
-    let html = `<h2>${s.title} <span class="info-icon" onclick="showInfo(\`${s.info}\`)">ℹ️</span></h2>`;
-    s.fields.forEach(f => html += getFieldHTML(f));
-    html += `<button onclick="prevStep()">Previous</button>
-             <button onclick="nextStep()">Next</button>
+    if (s.id==='riskPerTool' && formData.riskMode!=='perTool'){ currentStep++; return renderStep(); }
+    if (s.id==='riskClassification' && formData.riskMode==='perTool'){ currentStep++; return renderStep(); }
+    const infoArg = JSON.stringify(s.info);
+    let html = `<h2>${s.title} <span class="info-icon" onclick="showInfo(${infoArg})">ℹ️</span></h2>`;
+    s.fields.forEach(f=> html += getFieldHTML(f));
+    html += `<button onclick="prevStep()">Previous</button><button onclick="nextStep()">Next</button>
              <button class="skip-btn" onclick="skipStep()">Skip</button>`;
     wizardDiv.innerHTML = html;
     progressBar.style.width = Math.round((currentStep/steps.length)*100) + '%';
   }
+  // 7) Section helper + renderers
+  function heading(n,t){ return `<h3>${n}. ${t}</h3>`; }
 
-  // Kick off
-  renderStep();
-
-  function heading(n, t) {
-    return `<h3>${n}. ${t}</h3>`;
-  }
-  function sectionIntro() {
-    const c = formData.companyName || '[Company Name]';
-    const j = formData.jurisdiction || '[Jurisdiction]';
+  function sectionIntro(){
+    const c = formData.companyName||'[Company Name]';
+    const j = formData.jurisdiction||'[Jurisdiction]';
     return heading(1,'Introduction & Purpose')+`
-<p>This policy establishes principles, rules, and controls for safe, ethical, and compliant use of AI across <strong>${c}</strong>. Our objectives:</p>
+<p>This policy establishes principles, rules, and controls for safe, ethical, and compliant use of AI across <strong>${c}</strong>. Objectives:</p>
 <ul>
   <li>Safeguard customer & employee data;</li>
-  <li>Protect trade secrets & intellectual property;</li>
-  <li>Prevent bias & discriminatory outcomes;</li>
-  <li>Uphold all applicable laws & industry standards;</li>
-  <li>Maintain trust of customers, partners, and the public;</li>
-  <li>Operate under the laws of ${j}.</li>
+  <li>Protect trade secrets & IP;</li>
+  <li>Prevent bias & discrimination;</li>
+  <li>Uphold all laws & standards;</li>
+  <li>Maintain trust of customers & public;</li>
+  <li>Operate under laws of ${j}.</li>
 </ul><hr>`;
   }
-  function sectionScope() {
+
+  function sectionScope(){
     const who = formData.scope==='employees'
       ? 'Employees only.'
       : 'Employees, contractors, interns & partners.';
@@ -595,112 +486,123 @@ Use this classification to determine how rigorously you apply reviews, testing, 
   <li><strong>Where/When:</strong> On-premises, remote, mobile—any device.</li>
 </ul><hr>`;
   }
-  function sectionDefinitions() {
-    if (formData.includeDefinitions!=='Yes') return '';
+
+  function sectionDefinitions(){
+    if(formData.includeDefinitions!=='Yes') return '';
     return heading(3,'Definitions')+`
 <table>
   <tr><th>Term</th><th>Definition</th></tr>
-  <tr><td><strong>AI</strong></td><td>Systems performing tasks requiring human-like intelligence.</td></tr>
-  <tr><td><strong>ML</strong></td><td>Algorithms learning patterns from data to predict or decide.</td></tr>
-  <tr><td><strong>LLM</strong></td><td>Generative AI models trained on massive text datasets.</td></tr>
+  <tr><td><strong>AI</strong></td><td>Systems performing tasks requiring human intelligence.</td></tr>
+  <tr><td><strong>ML</strong></td><td>Algorithms learning patterns from data.</td></tr>
+  <tr><td><strong>LLM</strong></td><td>Large language models trained on text corpora.</td></tr>
   <tr><td><strong>Personal Data</strong></td><td>Information identifying a person (GDPR/CCPA/Law 25).</td></tr>
   <tr><td><strong>Trade Secret</strong></td><td>Confidential info with competitive value.</td></tr>
-  <tr><td><strong>High-Risk AI</strong></td><td>AI impacting critical decisions or sensitive data.</td></tr>
+  <tr><td><strong>High-Risk AI</strong></td><td>Affects critical decisions or sensitive data.</td></tr>
 </table><hr>`;
   }
-  function sectionTools() {
-    const tools = formData.approvedToolsList||[];
-    let list = tools.map(t=>`<li>${t}</li>`).join('');
-    if (formData.customTool) list+=`<li>${formData.customTool}</li>`;
+
+  function sectionTools(){
+    const list = (formData.approvedToolsList||[]).map(t=>`<li>${t}</li>`).join('') +
+                 (formData.customTool?`<li>${formData.customTool}</li>`:'');
     return heading(4,'Approved AI Tools')+`<ul>${list}</ul><hr>`;
   }
-  function sectionPrivacy() {
-    let items=[];
-    if(formData.personalData) items.push('Never share personal data with public AI without explicit authorization.');
-    if(formData.tradeSecrets) items.push('Protect trade secrets in secure, access-controlled environments.');
-    if(formData.financialData) items.push('Handle financial data under stringent compliance & encryption.');
-    if(formData.anonymize) items.push('Anonymize or de-identify data before training/testing.');
-    if(formData.encryption) items.push('Encrypt AI data at rest and in transit.');
+
+  function sectionPrivacy(){
+    const items=[];
+    if(formData.personalData) items.push('Never share personal data publicly without authorization.');
+    if(formData.tradeSecrets) items.push('Secure trade secrets in access-controlled environments.');
+    if(formData.financialData) items.push('Handle financial data under encryption & compliance.');
+    if(formData.anonymize) items.push('Anonymize or de-identify data before use.');
+    if(formData.encryption) items.push('Encrypt AI data at rest & in transit.');
     if(!items.length) return '';
     return heading(5,'Data Privacy & Security')+`<ol>${items.map(i=>`<li>${i}</li>`).join('')}</ol><hr>`;
   }
-  function sectionProhibited() {
-    const uses = formData.prohibitedUses||[];
-    let list = uses.map(u=>`<li>${u}</li>`).join('');
-    if(formData.customProhibited) list+=`<li>${formData.customProhibited}</li>`;
+
+  function sectionProhibited(){
+    const list = (formData.prohibitedUses||[]).map(u=>`<li>${u}</li>`).join('') +
+                 (formData.customProhibited?`<li>${formData.customProhibited}</li>`:'');
     return heading(6,'Prohibited Use Cases')+`<ul>${list}</ul><hr>`;
   }
-  function sectionGovernance() {
+
+  function sectionGovernance(){
     return heading(7,'Approved Use & Governance')+`
 <p>${formData.requireApproval==='Yes'
-  ? 'All new AI tools must undergo a formal risk, security & ethics review before approval.'
-  : 'No formal approval process is defined.'}</p><hr>`;
+  ? 'New AI tools must undergo risk, security & ethics review before approval.'
+  : 'No formal approval workflow defined.'}</p><hr>`;
   }
-  function sectionIP() {
-    return heading(8,'Intellectual Property & Trade Secrets')+`
+
+  function sectionIP(){
+    return heading(8,'IP & Trade Secrets')+`
 <p>${formData.ipOwnership==='Yes'
-  ? 'All AI outputs using company data are company-owned IP.'
-  : 'Ownership follows project agreements.'}</p>
+  ? 'AI outputs using company data are company-owned IP.'
+  : 'Ownership per project agreements.'}</p>
 <p>${formData.protectTradeSecrets==='Yes'
-  ? 'Employees must not disclose trade secrets via any AI tool.'
-  : 'Standard confidentiality obligations apply.'}</p><hr>`;
+  ? 'Do not disclose trade secrets via AI tools.'
+  : 'Standard confidentiality applies.'}</p><hr>`;
   }
-  function sectionBias() {
+
+  function sectionBias(){
     let out=`<p>${formData.biasReview==='Yes'
-      ? 'High-risk AI requires a documented Bias & Fairness Review before deployment.'
-      : 'No mandatory bias/fairness review is defined.'}</p>`;
-    if(formData.biasAuditFrequency) out+=`<p>Bias audits occur <strong>${formData.biasAuditFrequency}</strong>.</p>`;
+      ? 'High-risk AI requires a documented Bias & Fairness Review.'
+      : 'No mandatory bias/fairness review defined.'}</p>`;
+    if(formData.biasAuditFrequency)   out+=`<p>Bias audits every <strong>${formData.biasAuditFrequency}</strong>.</p>`;
     if(formData.customBiasRequirements) out+=`<p>${formData.customBiasRequirements}</p>`;
     return heading(9,'Fairness & Bias Mitigation')+out+'<hr>';
   }
-  function sectionCompliance() {
-    const laws = formData.laws||[];
-    let items = laws.map(l=>`<li>${l}</li>`).join('');
-    if(formData.customLaws) items+=`<li>${formData.customLaws}</li>`;
-    const exports = (formData.exportControls||[]).map(x=>`<li>${x}</li>`).join('');
-    if(formData.customExport) items+=`<li>${formData.customExport}</li>`;
+
+  function sectionCompliance(){
+    const laws = (formData.laws||[]).map(l=>`<li>${l}</li>`).join('') +
+                 (formData.customLaws?`<li>${formData.customLaws}</li>`:'');
+    const xctl = (formData.exportControls||[]).map(x=>`<li>${x}</li>`).join('');
+    const more = formData.customExport?`<li>${formData.customExport}</li>`:'';
     return heading(10,'Compliance & Legal')+`
-<p>This policy aligns with:</p>
+<p>Aligns with:</p>
 <ul>
-  ${items}
-  ${exports?`<li><strong>Export Controls:</strong><ul>${exports}</ul></li>`:''}
-  <li>Supplements Information Security, Code of Conduct & IP policies.</li>
+  ${laws}
+  ${xctl?`<li><strong>Export Controls:</strong><ul>${xctl}</ul></li>`:''}
+  ${more}
+  <li>Supplements Info Security, Code of Conduct & IP policies.</li>
 </ul><hr>`;
   }
-  function sectionTransparency() {
+
+  function sectionTransparency(){
     return heading(11,'Transparency & Explainability')+`
 <p>${formData.publicDisclosure==='Yes'
-  ? 'AI policy & usage details are publicly disclosed for accountability.'
-  : 'No public disclosure at this time.'}</p>
+  ? 'Policy & AI usage details are publicly disclosed.'
+  : 'No public disclosure.'}</p>
 <p>${formData.explainability==='Yes'
-  ? 'Employees must explain AI-driven decisions on request.'
+  ? 'Employees must explain AI decisions on request.'
   : 'No explainability requirement.'}</p><hr>`;
   }
-  function sectionTraining() {
+
+  function sectionTraining(){
     let out=`<p>${formData.training==='Yes'
       ? 'Mandatory onboarding on AI fundamentals, ethics, privacy & this policy.'
-      : 'Training recommended but not mandatory.'}</p>`;
+      : 'Training recommended but optional.'}</p>`;
     if(formData.trainingDetails) out+=`<p>${formData.trainingDetails}</p>`;
     out+=`<p>${formData.acknowledgment==='Yes'
-      ? 'Employees must acknowledge via the HR portal.'
-      : 'No formal acknowledgment required.'}</p>`;
+      ? 'Employees must acknowledge via HR portal.'
+      : 'No acknowledgment required.'}</p>`;
     if(formData.ackDetails) out+=`<p>${formData.ackDetails}</p>`;
     return heading(12,'Training & Awareness')+out+'<hr>';
   }
-  function sectionVendorContracts() {
+
+  function sectionVendorContracts(){
     return heading(13,'Vendor & Contract Clauses')+`
 <p>${formData.vendorClauses==='Yes'
-  ? 'All third-party AI vendors must sign security, privacy & ethics clauses.'
-  : 'No vendor clauses required.'}</p>
+  ? 'Third-party AI vendors must sign security, privacy & ethics clauses.'
+  : 'No vendor clause requirement.'}</p>
 <p>${formData.customVendorClauses||''}</p><hr>`;
   }
-  function sectionDataRetention() {
+
+  function sectionDataRetention(){
     const dr = formData.dataRetention||'Not specified';
     return heading(14,'Data Retention')+`
-<p>AI data, logs & artifacts retained for <strong>${dr}</strong>.</p>
+<p>Retain AI data & logs for <strong>${dr}</strong>.</p>
 <p>${formData.customDataRetention||''}</p><hr>`;
   }
-  function sectionLogging() {
+
+  function sectionLogging(){
     const en = formData.enableLogging?'Yes':'No';
     const lr = formData.logRetention||'Not specified';
     return heading(15,'Logging & Monitoring')+`
@@ -708,7 +610,8 @@ Use this classification to determine how rigorously you apply reviews, testing, 
 <p>Retention: <strong>${lr}</strong>.</p>
 <p>${formData.customLogRetention||''}</p><hr>`;
   }
-  function sectionMarketing() {
+
+  function sectionMarketing(){
     const chans = (formData.socialChannels||[]).join(', ')||'None';
     const cch   = formData.customSocialChannels?`, ${formData.customSocialChannels}`:'';
     const tools = (formData.creativeTools||[]).join(', ')||'None';
@@ -725,7 +628,7 @@ Use this classification to determine how rigorously you apply reviews, testing, 
 <p><strong>Creative Tools:</strong> ${tools}${ct}</p>
 <p><strong>Approval Workflow:</strong> ${approval}</p>
 <p><strong>Caution:</strong> ${formData.cautionPersonal
-      ? `Be cautious using company data on personal accounts: ${formData.cautionDetails}`
+      ? `Be cautious on personal accounts: ${formData.cautionDetails}`
       : 'No special caution.'}</p>
 <ul>
   <li>Follow Brand Guidelines.</li>
@@ -734,10 +637,11 @@ Use this classification to determine how rigorously you apply reviews, testing, 
   <li>Disclose with <code>#AIGenerated</code>.</li>
 </ul><hr>`;
   }
-  function sectionRisk() {
-    if(formData.riskMode==='perTool') {
+
+  function sectionRisk(){
+    if(formData.riskMode==='perTool'){
       let rows='';
-      for(const [tool,lvl] of Object.entries(formData.toolRisks||{})) {
+      for(const [tool,lvl] of Object.entries(formData.toolRisks||{})){
         rows+=`<tr><td>${tool}</td><td>${lvl}</td><td>${
           lvl==='High'   ? 'Full security, bias & ethics review' :
           lvl==='Medium' ? 'Quarterly audits & human oversight' :
@@ -761,8 +665,9 @@ Use this classification to determine how rigorously you apply reviews, testing, 
         : 'Standard monitoring.'}</p><hr>`;
     }
   }
-  function sectionIncidents() {
-    const parts=[]; 
+
+  function sectionIncidents(){
+    const parts=[];
     if(formData.incidentEmail) parts.push(`Email: ${formData.incidentEmail}`);
     if(formData.incidentPhone) parts.push(`Phone: ${formData.incidentPhone}`);
     if(formData.incidentSlack) parts.push(`Slack: ${formData.incidentSlack}`);
@@ -775,21 +680,24 @@ Use this classification to determine how rigorously you apply reviews, testing, 
   <li>Notify regulators/customers per obligations.</li>
 </ul><hr>`;
   }
-  function sectionReview() {
+
+  function sectionReview(){
     return heading(19,'Review & Updates')+`
 <ul>
   <li>Frequency: <strong>${formData.reviewFrequency}</strong>.</li>
   <li>Responsible Team: <strong>${formData.responsibleTeam}</strong>.</li>
 </ul><hr>`;
   }
-  function sectionSignoff() {
+
+  function sectionSignoff(){
     return heading(20,'Sign-off & Acknowledgment')+`
 <p>${formData.signOff==='Yes'
-      ? 'All personnel must sign or click-acknowledge before using AI tools.'
+      ? 'All personnel must sign or acknowledge before using AI tools.'
       : 'No sign-off required.'}</p><hr>`;
   }
 
-  function renderFinal() {
+  // Final render
+  function renderFinal(){
     let out='';
     out+=sectionIntro();
     out+=sectionScope();
@@ -811,14 +719,15 @@ Use this classification to determine how rigorously you apply reviews, testing, 
     out+=sectionIncidents();
     out+=sectionReview();
     out+=sectionSignoff();
-    out+=`<p><em>Approved by: ______________________ &nbsp;&nbsp; Date: ___________ &nbsp;&nbsp; Version: 1.0</em></p>
+    out+=`<p><em>Approved by: ______________________  Date: ___________  Version: 1.0</em></p>
           <p><em>Generated with AI Policy Builder. Review with legal & compliance teams. No liability assumed.</em></p>`;
     wizardDiv.innerHTML = `<h2>Preview & Copy</h2>
       <div class="policy-output">${out}</div>
       <button onclick="copyRichText()">Copy to Clipboard</button>`;
   }
 
-  function copyRichText() {
+  // Copy helper
+  function copyRichText(){
     const div = document.querySelector('.policy-output');
     const range = document.createRange();
     range.selectNode(div);
@@ -828,6 +737,9 @@ Use this classification to determine how rigorously you apply reviews, testing, 
     window.getSelection().removeAllRanges();
     alert('Policy copied to clipboard!');
   }
+
+  // Initialize
+  renderStep();
 </script>
 </body>
 </html>
