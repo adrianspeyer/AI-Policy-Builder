@@ -59,7 +59,7 @@
 <p>The Risk Classification step helps you categorize the AI tools you selected based on their potential impact and sensitivity. By classifying tools as High, Medium, or Low risk, you determine the level of governance, testing, and monitoring they require.</p>
 <h4>Levels:</h4>
 <ul>
-  <li><strong>High Risk:</strong> Tools that handle sensitive personal or proprietary data, drive critical decisions (e.g., hiring, lending, medical), or are subject to strict regulatory oversight. These require full security reviews, documented bias & ethics audits, and formal sign-off before any deployment or update.</li>
+  <li><strong>High Risk:</strong> Tools that handle sensitive personal or proprietary data, drive critical decisions (e.g., hiring, lending, medical), or are subject to strict regulatory oversight. These require full security reviews, documented bias & ethics audits, and formal sign-off before deployment or updates.</li>
   <li><strong>Medium Risk:</strong> Tools that process less sensitive data or support semi-automated decisions but still affect outcomes that need human oversight. These require quarterly bias checks, human-in-the-loop approvals on key outputs, and routine security reviews.</li>
   <li><strong>Low Risk:</strong> Tools used for general, non-sensitive tasks (e.g., marketing copy generation with public data). These require standard monitoring, periodic usage logging, and basic access controls.</li>
 </ul>
@@ -100,8 +100,9 @@
       info:`Clarify that AI outputs using company data are company-owned IP and how trade secrets must be protected.` },
     { id:'fairness', title:'Fairness & Bias Mitigation', fields:['biasReview','biasAuditFrequency','customBiasRequirements'],
       info:`State bias assessment requirements, audit frequency, and any additional fairness controls.` },
+    // 10. Compliance & Legal
     { id:'compliance', title:'Compliance & Legal', fields:['laws','customLaws','exportControls','customExport'],
-      info:`Select applicable privacy laws (GDPR, CCPA, Law 25, etc.) and export-control regimes. Full details in the modal ℹ️.` },
+      info:`Select applicable privacy laws (GDPR, CCPA/CPRA, Quebec Law 25, etc.) and export-control regimes. Full definitions & links in the modal ℹ️.` },
     { id:'transparency', title:'Transparency & Explainability', fields:['publicDisclosure','explainability'],
       info:`Decide if the policy should be public and whether employees must explain AI decisions to stakeholders.` },
     { id:'training', title:'Training & Awareness', fields:['training','trainingDetails','acknowledgment','ackDetails'],
@@ -197,9 +198,7 @@
         </select>`;
       case 'riskClassification':
         return `<label>Select global risk level:</label>
-                <select id="riskClassification">
-                  <option>High</option><option>Medium</option><option>Low</option>
-                </select>`;
+                <select id="riskClassification"><option>High</option><option>Medium</option><option>Low</option></select>`;
       case 'riskPerTool':
         const tools = formData.approvedToolsList || [];
         let html = `
@@ -215,16 +214,12 @@
           tools.forEach((tool,i) => {
             html += `
             <label>Risk for "${tool}":</label>
-            <select id="riskTool_${i}">
-              <option>High</option><option>Medium</option><option>Low</option>
-            </select><br>`;
+            <select id="riskTool_${i}"><option>High</option><option>Medium</option><option>Low</option></select><br>`;
           });
           if (formData.customTool) {
             html += `
             <label>Risk for "${formData.customTool}":</label>
-            <select id="riskTool_custom">
-              <option>High</option><option>Medium</option><option>Low</option>
-            </select><br>`;
+            <select id="riskTool_custom"><option>High</option><option>Medium</option><option>Low</option></select><br>`;
           }
         }
         return html;
@@ -234,8 +229,7 @@
       case 'anonymize':       return `<label><input type="checkbox" id="anonymize"> Require anonymization</label>`;
       case 'encryption':      return `<label>Require encryption?</label><select id="encryption"><option>Yes</option><option>No</option></select>`;
       case 'prohibitedUses':
-        return `<label>Prohibited use cases:</label>
-                <select id="prohibitedUses" multiple>
+        return `<label>Prohibited use cases:</label><select id="prohibitedUses" multiple>
                   <option>Uploading confidential documents</option>
                   <option>Automated hiring/credit/medical decisions</option>
                   <option>Providing legal advice</option>
@@ -302,57 +296,64 @@
       case 'customLogRetention':
         return `<label>Other log policy:</label><textarea id="customLogRetention" placeholder="…"></textarea>`;
       case 'socialChannels':
-        return `<label>Social channels:</label>
-                <select id="socialChannels" multiple>
+        return `<label>Social channels:</label><select id="socialChannels" multiple>
                   <option>LinkedIn</option><option>Twitter</option><option>Instagram</option>
                   <option>Facebook</option><option>TikTok</option><option>YouTube</option>
                 </select>`;
       case 'customSocialChannels':
         return `<label>Other channels:</label><textarea id="customSocialChannels" placeholder="…"></textarea>`;
       case 'creativeTools':
-        return `<label>Creative AI tools:</label>
-                <select id="creativeTools" multiple>
+        return `<label>Creative AI tools:</label><select id="creativeTools" multiple>
                   <option>Canva (Magic Studio)</option><option>Midjourney v7</option>
                   <option>DALL·E 3</option><option>Adobe Firefly</option><option>Stable Diffusion</option>
                 </select>`;
       case 'customCreativeTools':
         return `<label>Other creative tools:</label><textarea id="customCreativeTools" placeholder="…"></textarea>`;
-      case 'approvalName':
-        return `<label>Approval team/name:</label><input type="text" id="approvalName">`;
-      case 'approvalEmail':
-        return `<label>Approval email:</label><input type="text" id="approvalEmail">`;
-      case 'approvalPhone':
-        return `<label>Approval phone:</label><input type="text" id="approvalPhone">`;
-      case 'approvalSlack':
-        return `<label>Approval Slack channel:</label><input type="text" id="approvalSlack">`;
-      case 'approvalTeams':
-        return `<label>Approval Teams channel:</label><input type="text" id="approvalTeams">`;
-      case 'cautionPersonal':
-        return `<label><input type="checkbox" id="cautionPersonal"> Caution using company data on personal accounts</label>`;
-      case 'cautionDetails':
-        return `<label>Caution details:</label><textarea id="cautionDetails" placeholder="…"></textarea>`;
-      case 'incidentEmail':
-        return `<label>Incident email:</label><input type="text" id="incidentEmail">`;
-      case 'incidentPhone':
-        return `<label>Incident phone:</label><input type="text" id="incidentPhone">`;
-      case 'incidentSlack':
-        return `<label>Incident Slack channel:</label><input type="text" id="incidentSlack">`;
-      case 'incidentTeams':
-        return `<label>Incident Teams channel:</label><input type="text" id="incidentTeams">`;
+      case 'approvalName':   return `<label>Approval team/name:</label><input type="text" id="approvalName">`;
+      case 'approvalEmail':  return `<label>Approval email:</label><input type="text" id="approvalEmail">`;
+      case 'approvalPhone':  return `<label>Approval phone:</label><input type="text" id="approvalPhone">`;
+      case 'approvalSlack':  return `<label>Approval Slack channel:</label><input type="text" id="approvalSlack">`;
+      case 'approvalTeams':  return `<label>Approval Teams channel:</label><input type="text" id="approvalTeams">`;
+      case 'cautionPersonal':return `<label><input type="checkbox" id="cautionPersonal"> Caution using company data on personal accounts</label>`;
+      case 'cautionDetails': return `<label>Caution details:</label><textarea id="cautionDetails" placeholder="…"></textarea>`;
+      case 'incidentEmail':  return `<label>Incident email:</label><input type="text" id="incidentEmail">`;
+      case 'incidentPhone':  return `<label>Incident phone:</label><input type="text" id="incidentPhone">`;
+      case 'incidentSlack':  return `<label>Incident Slack channel:</label><input type="text" id="incidentSlack">`;
+      case 'incidentTeams':  return `<label>Incident Teams channel:</label><input type="text" id="incidentTeams">`;
       case 'reviewFrequency':
         return `<label>Review frequency:</label><select id="reviewFrequency"><option>Annually</option><option>Semi-annual</option><option>As needed</option></select>`;
-      case 'responsibleTeam':
-        return `<label>Responsible team:</label><input type="text" id="responsibleTeam">`;
+      case 'responsibleTeam':return `<label>Responsible team:</label><input type="text" id="responsibleTeam">`;
       case 'signOff':
         return `<label>Require sign-off?</label><select id="signOff"><option>Yes</option><option>No</option></select>`;
-      default:
-        return '';
+      default: return '';
     }
   }
 
+  // Close modal
   closeModal.onclick = () => modal.style.display = 'none';
+  window.onclick = e => { if(e.target === modal) modal.style.display = 'none'; };
+
+  // showInfo override for compliance
   function showInfo(html){
-    modalText.innerHTML = html;
+    if(steps[currentStep].id === 'compliance'){
+      modalText.innerHTML = `
+        <h3>Compliance & Legal – Details</h3>
+        <ul>
+          <li><strong>GDPR (EU):</strong> EU regulation on personal data privacy. <a href="https://gdpr.eu" target="_blank">Learn more</a></li>
+          <li><strong>CCPA/CPRA (California):</strong> California law granting consumer data rights. <a href="https://oag.ca.gov/privacy/ccpa" target="_blank">Learn more</a></li>
+          <li><strong>Quebec Law 25:</strong> Quebec law modernizing private-sector privacy. <a href="https://www.legisquebec.gouv.qc.ca/en/document/cs/P-39.1" target="_blank">Learn more</a></li>
+          <li><strong>PIPEDA (Canada):</strong> Federal private-sector data protection law. <a href="https://www.priv.gc.ca/en/privacy-topics/privacy-laws-in-canada/the-personal-information-protection-and-electronic-documents-act-pipeda/" target="_blank">Learn more</a></li>
+          <li><strong>HIPAA (US):</strong> US law protecting medical information privacy. <a href="https://www.hhs.gov/hipaa" target="_blank">Learn more</a></li>
+        </ul>
+        <h4>Export Controls</h4>
+        <ul>
+          <li><strong>U.S. EAR/ITAR:</strong> US export regulations on defense & high-tech goods. <a href="https://www.bis.doc.gov/index.php/policy-guidance/ear" target="_blank">Learn more</a></li>
+          <li><strong>EU Dual-use:</strong> EU controls on dual-use items. <a href="https://trade.ec.europa.eu/doclib/html/157807.htm" target="_blank">Learn more</a></li>
+          <li><strong>UK Export Controls:</strong> UK regime for controlled goods. <a href="https://www.gov.uk/guidance/export-controls-brochure" target="_blank">Learn more</a></li>
+        </ul>`;
+    } else {
+      modalText.innerHTML = html;
+    }
     modal.style.display = 'block';
   }
 
@@ -377,11 +378,12 @@
   }
 
   function prevStep(){
-    currentStep = Math.max(0, currentStep-1);
+    currentStep = Math.max(0, currentStep - 1);
+    // skip mismatched risk screens
     while(currentStep>0){
-      const s=steps[currentStep];
+      const s = steps[currentStep];
       if((s.id==='riskPerTool' && formData.riskMode!=='perTool')
-      ||(s.id==='riskClassification' && formData.riskMode==='perTool')){
+      || (s.id==='riskClassification' && formData.riskMode==='perTool')){
         currentStep--;
         continue;
       }
@@ -391,24 +393,24 @@
   }
   function nextStep(){ saveStepData(); currentStep++; renderStep(); }
   function skipStep(){ currentStep++; renderStep(); }
-  window.onclick = e=>{ if(e.target===modal) modal.style.display='none'; };
 
   function renderStep(){
-    if(currentStep>=steps.length) return renderFinal();
+    if(currentStep >= steps.length) return renderFinal();
     const s = steps[currentStep];
     if(s.id==='riskPerTool' && formData.riskMode!=='perTool'){ currentStep++; return renderStep(); }
     if(s.id==='riskClassification' && formData.riskMode==='perTool'){ currentStep++; return renderStep(); }
 
     const infoEscaped = s.info.replace(/`/g,'\\`');
     let html = `<h2>${s.title} <span class="info-icon" onclick="showInfo(\`${infoEscaped}\`)">ℹ️</span></h2>`;
-    s.fields.forEach(f => html += getFieldHTML(f));
+    s.fields.forEach(f=> html += getFieldHTML(f));
     html += `<button onclick="prevStep()">Previous</button><button onclick="nextStep()">Next</button><button class="skip-btn" onclick="skipStep()">Skip</button>`;
     wizardDiv.innerHTML = html;
-    progressBar.style.width = Math.round((currentStep/steps.length)*100)+'%';
+    progressBar.style.width = Math.round((currentStep/steps.length)*100) + '%';
   }
   function heading(n,t){ return `<h3>${n}. ${t}</h3>`; }
+
   function sectionIntro(){
-    const c = formData.companyName||'[Company Name]', j=formData.jurisdiction||'[Jurisdiction]';
+    const c = formData.companyName || '[Company Name]', j = formData.jurisdiction || '[Jurisdiction]';
     return heading(1,'Introduction & Purpose')+`
 <p>This policy establishes principles, rules, and controls for safe, ethical, and compliant use of AI across <strong>${c}</strong>. Objectives:</p>
 <ul>
@@ -420,8 +422,9 @@
   <li>Operate under laws of ${j}.</li>
 </ul><hr>`;
   }
+
   function sectionScope(){
-    const who=formData.scope==='employees'?'Employees only.':'Employees, contractors, interns & partners.';
+    const who = formData.scope==='employees' ? 'Employees only.' : 'Employees, contractors, interns & partners.';
     return heading(2,'Scope')+`
 <ul>
   <li><strong>Who:</strong> ${who}</li>
@@ -429,6 +432,7 @@
   <li><strong>Where/When:</strong> On-premises, remote, mobile—any device.</li>
 </ul><hr>`;
   }
+
   function sectionDefinitions(){
     if(formData.includeDefinitions!=='Yes') return '';
     return heading(3,'Definitions')+`
@@ -436,36 +440,43 @@
   <tr><th>Term</th><th>Definition</th></tr>
   <tr><td><strong>AI</strong></td><td>Systems performing tasks requiring human-like intelligence.</td></tr>
   <tr><td><strong>Machine Learning</strong></td><td>Algorithms learning patterns from data.</td></tr>
-  <tr><td><strong>LLM</strong></td><td>Large language models trained on text corpora.</td></tr>
+  <tr><td><strong>LLM</strong></td><td>Large language models trained on massive text datasets.</td></tr>
   <tr><td><strong>Personal Data</strong></td><td>Information identifying a person (GDPR/CCPA/Law 25).</td></tr>
-  <tr><td><strong>Trade Secret</strong></td><td>Confidential information with competitive value.</td></tr>
+  <tr><td><strong>Trade Secret</strong></td><td>Confidential info with competitive value.</td></tr>
   <tr><td><strong>High-Risk AI</strong></td><td>Affects critical decisions or sensitive data.</td></tr>
 </table><hr>`;
   }
+
   function sectionTools(){
-    const list=(formData.approvedToolsList||[]).map(t=>`<li>${t}</li>`).join('')+(formData.customTool?`<li>${formData.customTool}</li>`:'');
+    const list = (formData.approvedToolsList||[]).map(t=>`<li>${t}</li>`).join('')+
+                 (formData.customTool?`<li>${formData.customTool}</li>`:'');
     return heading(4,'Approved AI Tools')+`<ul>${list}</ul><hr>`;
   }
+
   function sectionPrivacy(){
-    const items=[];
-    if(formData.personalData) items.push('Never share personal data with public AI without authorization.');
-    if(formData.tradeSecrets) items.push('Secure trade secrets in controlled environments.');
-    if(formData.financialData) items.push('Handle financial data under encryption & compliance.');
-    if(formData.anonymize) items.push('Anonymize or de-identify data before use.');
-    if(formData.encryption) items.push('Encrypt AI data at rest & in transit.');
+    const items = [];
+    if(formData.personalData)   items.push('Never share personal data with public AI without authorization.');
+    if(formData.tradeSecrets)   items.push('Secure trade secrets in controlled environments.');
+    if(formData.financialData)  items.push('Handle financial data under encryption & compliance.');
+    if(formData.anonymize)      items.push('Anonymize or de-identify data before use.');
+    if(formData.encryption)     items.push('Encrypt AI data at rest & in transit.');
     if(!items.length) return '';
     return heading(5,'Data Privacy & Security')+`<ol>${items.map(i=>`<li>${i}</li>`).join('')}</ol><hr>`;
   }
+
   function sectionProhibited(){
-    const list=(formData.prohibitedUses||[]).map(u=>`<li>${u}</li>`).join('')+(formData.customProhibited?`<li>${formData.customProhibited}</li>`:'');
+    const list = (formData.prohibitedUses||[]).map(u=>`<li>${u}</li>`).join('')+
+                 (formData.customProhibited?`<li>${formData.customProhibited}</li>`:'');
     return heading(6,'Prohibited Use Cases')+`<ul>${list}</ul><hr>`;
   }
+
   function sectionGovernance(){
     return heading(7,'Approved Use & Governance')+`
 <p>${formData.requireApproval==='Yes'
   ? 'All new AI tools must undergo risk, security & ethics review before approval.'
   : 'No formal approval workflow defined.'}</p><hr>`;
   }
+
   function sectionIP(){
     return heading(8,'IP & Trade Secrets')+`
 <p>${formData.ipOwnership==='Yes'
@@ -475,27 +486,50 @@
   ? 'Do not disclose trade secrets via AI tools.'
   : 'Standard confidentiality applies.'}</p><hr>`;
   }
+
   function sectionBias(){
-    let out=`<p>${formData.biasReview==='Yes'
+    let out = `<p>${formData.biasReview==='Yes'
       ? 'High-risk AI systems require a documented Bias & Fairness Review before deployment.'
       : 'No mandatory bias/fairness review.'}</p>`;
-    if(formData.biasAuditFrequency) out+=`<p>Bias audits every <strong>${formData.biasAuditFrequency}</strong>.</p>`;
-    if(formData.customBiasRequirements) out+=`<p>${formData.customBiasRequirements}</p>`;
-    return heading(9,'Fairness & Bias Mitigation')+out+'<hr>';
+    if(formData.biasAuditFrequency) out += `<p>Bias audits every <strong>${formData.biasAuditFrequency}</strong>.</p>`;
+    if(formData.customBiasRequirements) out += `<p>${formData.customBiasRequirements}</p>`;
+    return heading(9,'Fairness & Bias Mitigation') + out + '<hr>';
   }
+
   function sectionCompliance(){
-    const laws=(formData.laws||[]).map(l=>`<li>${l}</li>`).join('')+(formData.customLaws?`<li>${formData.customLaws}</li>`:'');
-    const x=(formData.exportControls||[]).map(x=>`<li>${x}</li>`).join('');
-    const y=formData.customExport?`<li>${formData.customExport}</li>`:'';
-    return heading(10,'Compliance & Legal')+`
-<p>Aligns with:</p>
-<ul>
-  ${laws}
-  ${x?`<li><strong>Export Controls:</strong><ul>${x}</ul></li>`:''}
-  ${y}
-  <li>Supplements Info Security, Code of Conduct & IP policies.</li>
-</ul><hr>`;
+    let out = heading(10,'Compliance & Legal') + `<ul>`;
+    // Privacy laws
+    (formData.laws||[]).forEach(law => {
+      switch(law){
+        case 'GDPR (EU)': out += `<li><strong>GDPR (EU):</strong> EU regulation on personal data privacy. <a href="https://gdpr.eu" target="_blank">Learn more</a></li>`; break;
+        case 'CCPA/CPRA (California)': out += `<li><strong>CCPA/CPRA (California):</strong> California law granting consumer data rights. <a href="https://oag.ca.gov/privacy/ccpa" target="_blank">Learn more</a></li>`; break;
+        case 'Quebec Law 25': out += `<li><strong>Quebec Law 25:</strong> Quebec law modernizing private-sector privacy. <a href="https://www.legisquebec.gouv.qc.ca/en/document/cs/P-39.1" target="_blank">Learn more</a></li>`; break;
+        case 'PIPEDA (Canada)': out += `<li><strong>PIPEDA (Canada):</strong> Federal private-sector data protection law. <a href="https://www.priv.gc.ca/en/privacy-topics/privacy-laws-in-canada/the-personal-information-protection-and-electronic-documents-act-pipeda/" target="_blank">Learn more</a></li>`; break;
+        case 'HIPAA (US)': out += `<li><strong>HIPAA (US):</strong> US law protecting medical information privacy. <a href="https://www.hhs.gov/hipaa" target="_blank">Learn more</a></li>`; break;
+        default: out += `<li>${law}</li>`;
+      }
+    });
+    if(formData.customLaws) out += `<li>${formData.customLaws}</li>`;
+
+    // Export controls
+    if(formData.exportControls && formData.exportControls.length){
+      out += `<li><strong>Export Controls:</strong><ul>`;
+      formData.exportControls.forEach(x => {
+        switch(x){
+          case 'U.S. EAR/ITAR': out += `<li><strong>U.S. EAR/ITAR:</strong> US regulations on defense & high-tech goods. <a href="https://www.bis.doc.gov/index.php/policy-guidance/ear" target="_blank">Learn more</a></li>`; break;
+          case 'EU Dual-use':   out += `<li><strong>EU Dual-use:</strong> EU controls on dual-use items. <a href="https://trade.ec.europa.eu/doclib/html/157807.htm" target="_blank">Learn more</a></li>`; break;
+          case 'UK Export Controls': out += `<li><strong>UK Export Controls:</strong> UK regime for controlled goods. <a href="https://www.gov.uk/guidance/export-controls-brochure" target="_blank">Learn more</a></li>`; break;
+          default: out += `<li>${x}</li>`;
+        }
+      });
+      if(formData.customExport) out += `<li>${formData.customExport}</li>`;
+      out += `</ul></li>`;
+    }
+
+    out += `<li>Supplements Information Security, Code of Conduct & IP policies.</li></ul><hr>`;
+    return out;
   }
+
   function sectionTransparency(){
     return heading(11,'Transparency & Explainability')+`
 <p>${formData.publicDisclosure==='Yes'
@@ -505,17 +539,19 @@
   ? 'Employees must explain AI decisions on request.'
   : 'No explainability requirement.'}</p><hr>`;
   }
+
   function sectionTraining(){
-    let out=`<p>${formData.training==='Yes'
+    let out = `<p>${formData.training==='Yes'
       ? 'Mandatory onboarding on AI fundamentals, ethics, privacy & this policy.'
       : 'Training recommended but optional.'}</p>`;
-    if(formData.trainingDetails) out+=`<p>${formData.trainingDetails}</p>`;
-    out+=`<p>${formData.acknowledgment==='Yes'
+    if(formData.trainingDetails) out += `<p>${formData.trainingDetails}</p>`;
+    out += `<p>${formData.acknowledgment==='Yes'
       ? 'Employees must acknowledge via HR portal.'
       : 'No acknowledgment required.'}</p>`;
-    if(formData.ackDetails) out+=`<p>${formData.ackDetails}</p>`;
+    if(formData.ackDetails) out += `<p>${formData.ackDetails}</p>`;
     return heading(12,'Training & Awareness')+out+'<hr>';
   }
+
   function sectionVendorContracts(){
     return heading(13,'Vendor & Contract Clauses')+`
 <p>${formData.vendorClauses==='Yes'
@@ -523,30 +559,33 @@
   : 'No vendor clause requirement.'}</p>
 <p>${formData.customVendorClauses||''}</p><hr>`;
   }
+
   function sectionDataRetention(){
-    const dr=formData.dataRetention||'Not specified';
+    const dr = formData.dataRetention || 'Not specified';
     return heading(14,'Data Retention')+`
 <p>Retain AI data & logs for <strong>${dr}</strong>.</p>
 <p>${formData.customDataRetention||''}</p><hr>`;
   }
+
   function sectionLogging(){
-    const en=formData.enableLogging?'Yes':'No', lr=formData.logRetention||'Not specified';
+    const en = formData.enableLogging ? 'Yes' : 'No', lr = formData.logRetention || 'Not specified';
     return heading(15,'Logging & Monitoring')+`
 <p>Logging enabled: <strong>${en}</strong>.</p>
 <p>Retention: <strong>${lr}</strong>.</p>
 <p>${formData.customLogRetention||''}</p><hr>`;
   }
+
   function sectionMarketing(){
-    const chans=(formData.socialChannels||[]).join(', ')||'None',
-          cch=formData.customSocialChannels?`, ${formData.customSocialChannels}`:'',
-          tools=(formData.creativeTools||[]).join(', ')||'None',
-          ct=formData.customCreativeTools?`, ${formData.customCreativeTools}`:'',
-          approval=[
-            formData.approvalName&&`Name/Team: ${formData.approvalName}`,
-            formData.approvalEmail&&`Email: ${formData.approvalEmail}`,
-            formData.approvalPhone&&`Phone: ${formData.approvalPhone}`,
-            formData.approvalSlack&&`Slack: ${formData.approvalSlack}`,
-            formData.approvalTeams&&`Teams: ${formData.approvalTeams}`
+    const chans = (formData.socialChannels||[]).join(', ')||'None',
+          cch   = formData.customSocialChannels ? `, ${formData.customSocialChannels}` : '',
+          tools = (formData.creativeTools||[]).join(', ')||'None',
+          ct    = formData.customCreativeTools ? `, ${formData.customCreativeTools}` : '',
+          approval = [
+            formData.approvalName   && `Name/Team: ${formData.approvalName}`,
+            formData.approvalEmail  && `Email: ${formData.approvalEmail}`,
+            formData.approvalPhone  && `Phone: ${formData.approvalPhone}`,
+            formData.approvalSlack  && `Slack: ${formData.approvalSlack}`,
+            formData.approvalTeams  && `Teams: ${formData.approvalTeams}`
           ].filter(Boolean).join('; ')||'None specified';
     return heading(16,'AI in Marketing & Community Content')+`
 <p><strong>Social Channels:</strong> ${chans}${cch}</p>
@@ -562,6 +601,7 @@
   <li>Disclose with <code>#AIGenerated</code>.</li>
 </ul><hr>`;
   }
+
   function sectionRisk(){
     if(formData.riskMode==='perTool'){
       let rows='';
@@ -579,7 +619,7 @@
   ${rows}
 </table><hr>`;
     } else {
-      const lvl=formData.riskClassification||'Not specified';
+      const lvl = formData.riskClassification||'Not specified';
       return heading(17,'Global Risk Classification')+`
 <p>Global risk level: <strong>${lvl}</strong>.</p>
 <p>${lvl==='High'
@@ -589,6 +629,7 @@
         : 'Standard monitoring.'}</p><hr>`;
     }
   }
+
   function sectionIncidents(){
     const parts=[];
     if(formData.incidentEmail) parts.push(`Email: ${formData.incidentEmail}`);
@@ -603,6 +644,7 @@
   <li>Notify regulators/customers per obligations.</li>
 </ul><hr>`;
   }
+
   function sectionReview(){
     return heading(19,'Review & Updates')+`
 <ul>
@@ -610,6 +652,7 @@
   <li>Responsible Team: <strong>${formData.responsibleTeam || 'Not specified'}</strong>.</li>
 </ul><hr>`;
   }
+
   function sectionSignoff(){
     return heading(20,'Sign-off & Acknowledgment')+`
 <p>${formData.signOff==='Yes'
@@ -619,28 +662,28 @@
 
   function renderFinal(){
     let out='';
-    out+=sectionIntro();
-    out+=sectionScope();
-    out+=sectionDefinitions();
-    out+=sectionTools();
-    out+=sectionPrivacy();
-    out+=sectionProhibited();
-    out+=sectionGovernance();
-    out+=sectionIP();
-    out+=sectionBias();
-    out+=sectionCompliance();
-    out+=sectionTransparency();
-    out+=sectionTraining();
-    out+=sectionVendorContracts();
-    out+=sectionDataRetention();
-    out+=sectionLogging();
-    out+=sectionMarketing();
-    out+=sectionRisk();
-    out+=sectionIncidents();
-    out+=sectionReview();
-    out+=sectionSignoff();
-    out+=`<p><em>Approved by: ______________________  Date: ___________  Version: 1.0</em></p>
-          <p><em>Generated with AI Policy Builder. Review with legal & compliance teams. No liability assumed.</em></p>`;
+    out += sectionIntro();
+    out += sectionScope();
+    out += sectionDefinitions();
+    out += sectionTools();
+    out += sectionPrivacy();
+    out += sectionProhibited();
+    out += sectionGovernance();
+    out += sectionIP();
+    out += sectionBias();
+    out += sectionCompliance();
+    out += sectionTransparency();
+    out += sectionTraining();
+    out += sectionVendorContracts();
+    out += sectionDataRetention();
+    out += sectionLogging();
+    out += sectionMarketing();
+    out += sectionRisk();
+    out += sectionIncidents();
+    out += sectionReview();
+    out += sectionSignoff();
+    out += `<p><em>Approved by: ______________________  Date: ___________  Version: 1.0</em></p>
+            <p><em>Generated with AI Policy Builder. Review with legal & compliance teams. No liability assumed.</em></p>`;
     wizardDiv.innerHTML = `<h2>Preview & Copy</h2>
       <div class="policy-output">${out}</div>
       <button onclick="copyRichText()">Copy to Clipboard</button>`;
