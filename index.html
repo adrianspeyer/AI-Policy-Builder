@@ -288,12 +288,14 @@ function showInfo(html) {
   if (['riskMode','riskClassification','riskPerTool'].includes(sid)) {
     modalText.innerHTML = `
       <h3>Risk Classification Details</h3>
-      <p>Classify this AI system as <strong>High</strong>, <strong>Medium</strong>, or <strong>Low</strong> risk:</p>
-      <ul>
-        <li><strong>High Risk:</strong> Sensitive/proprietary data; critical decisions; strict oversight; full audits & sign-off.</li>
-        <li><strong>Medium Risk:</strong> Less sensitive data; human-in-the-loop; quarterly bias checks.</li>
-        <li><strong>Low Risk:</strong> General, non-sensitive tasks; standard monitoring.</li>
-      </ul>`;
+<p>The Risk Classification step helps you categorize the AI tools you selected based on their potential impact and sensitivity. By classifying tools as High, Medium, or Low risk, you determine the level of governance, testing, and monitoring they require.</p>
+<h4>Levels:</h4>
+<ul>
+  <li><strong>High Risk:</strong> Tools that handle sensitive personal or proprietary data, drive critical decisions (e.g., hiring, lending, medical), or are subject to strict regulatory oversight. These require full security reviews, documented bias & ethics audits, and formal sign-off before deployment or updates.</li>
+  <li><strong>Medium Risk:</strong> Tools that process less sensitive data or support semi-automated decisions but still affect outcomes that need human oversight. These require quarterly bias checks, human-in-the-loop approvals on key outputs, and routine security reviews.</li>
+  <li><strong>Low Risk:</strong> Tools used for general, non-sensitive tasks (e.g., marketing copy generation with public data). These require standard monitoring, periodic usage logging, and basic access controls.</li>
+</ul>
+<p>Choose <em>Global</em> to apply the same level to all selected tools, or <em>Per-Tool</em> to tailor the level individually.</p>`;
   }
   else if (sid==='compliance') {
     modalText.innerHTML = `
