@@ -51,33 +51,45 @@
       info:`Include detailed definitions of AI, Machine Learning, LLMs, personal data, trade secrets, high-risk AI, etc., plus an appendix of examples.` },
     { id:'tools', title:'Approved AI Tools', fields:['approvedToolsList','customTool'],
       info:`Select from the top-20 AI tools list and optionally add any other tools your organization uses.` },
+
+    // 5. Risk Classification Mode
     { id:'riskMode', title:'Risk Classification Mode', fields:['riskMode'],
-      info:`
-<p><strong>Risk Classification</strong><br>
-Classify this AI system as High, Medium, or Low risk:<br>
-• <strong>High Risk</strong>: Handles sensitive personal or proprietary data; drives critical decisions; subject to strict oversight.<br>
-• <strong>Medium Risk</strong>: Processes less sensitive data or supports semi-automated decisions with human review.<br>
-• <strong>Low Risk</strong>: Used for general, non-sensitive tasks (e.g., marketing copy).<br>
-Use this classification to determine how rigorously you apply reviews, testing, monitoring, and controls.</p>
-<label>Risk mode:</label>
-<select id="riskMode">
-  <option value="global">Global (one level for all)</option>
-  <option value="perTool">Per-Tool (custom per tool)</option>
-</select>
-`},
-    { id:'riskClassification', title:'Global Risk Level', fields:['riskClassification'],
-      info:`
-<p>Select a single risk level for all approved AI tools:</p>
+      info: `
+<h3>Risk Classification Details</h3>
+<p>The Risk Classification step helps you categorize the AI tools you selected based on their potential impact and sensitivity. By classifying tools as High, Medium, or Low risk, you determine the level of governance, testing, and monitoring they require.</p>
+<h4>Levels:</h4>
 <ul>
-  <li><strong>High</strong> – Full security, bias & ethics review.</li>
-  <li><strong>Medium</strong> – Periodic audits & human oversight.</li>
-  <li><strong>Low</strong> – Standard monitoring.</li>
+  <li><strong>High Risk:</strong> Tools that handle sensitive personal or proprietary data, drive critical decisions (e.g., hiring, lending, medical), or are subject to strict regulatory oversight. These require full security reviews, documented bias & ethics audits, and formal sign-off before any deployment or update.</li>
+  <li><strong>Medium Risk:</strong> Tools that process less sensitive data or support semi-automated decisions but still affect outcomes that need human oversight. These require quarterly bias checks, human-in-the-loop approvals on key outputs, and routine security reviews.</li>
+  <li><strong>Low Risk:</strong> Tools used for general, non-sensitive tasks (e.g., marketing copy generation with public data). These require standard monitoring, periodic usage logging, and basic access controls.</li>
 </ul>
-`},
+<p>Choose <em>Global</em> to apply the same level to all selected tools, or <em>Per-Tool</em> to tailor the level individually.</p>
+` },
+
+    // 6. Global Risk Level
+    { id:'riskClassification', title:'Global Risk Level', fields:['riskClassification'],
+      info: `
+<h3>Risk Classification Details</h3>
+<p>Refer to the same High/Medium/Low definitions when selecting a global risk level to apply to all tools.</p>
+<h4>Levels:</h4>
+<ul>
+  <li><strong>High Risk:</strong> Handles sensitive or proprietary data and critical decisions; full reviews required.</li>
+  <li><strong>Medium Risk:</strong> Less sensitive data; human oversight required.</li>
+  <li><strong>Low Risk:</strong> General tasks; standard monitoring.</li>
+</ul>` },
+
+    // 7. Per-Tool Risk Classification
     { id:'riskPerTool', title:'Per-Tool Risk Classification', fields:['riskPerTool'],
-      info:`
-<p>Assign each selected tool its own risk level. Refer to the definitions above for High, Medium, and Low.</p>
-`},
+      info: `
+<h3>Risk Classification Details</h3>
+<p>Assign each tool its own risk level using the definitions below:</p>
+<h4>Levels:</h4>
+<ul>
+  <li><strong>High Risk:</strong> Sensitive data or critical decisions; strict oversight.</li>
+  <li><strong>Medium Risk:</strong> Semi-automated decisions with human review.</li>
+  <li><strong>Low Risk:</strong> Non-sensitive, general tasks.</li>
+</ul>` },
+
     { id:'privacy', title:'Data Privacy & Security', fields:['personalData','financialData','tradeSecrets','anonymize','encryption'],
       info:`Specify which data types your AI systems will handle and whether anonymization or encryption is required.` },
     { id:'prohibited', title:'Prohibited Use Cases', fields:['prohibitedUses','customProhibited'],
@@ -100,7 +112,7 @@ Use this classification to determine how rigorously you apply reviews, testing, 
       info:`Specify how long to keep AI training data, logs, and model artifacts.` },
     { id:'logging', title:'Logging & Monitoring', fields:['enableLogging','logRetention','customLogRetention'],
       info:`Enable usage logging of AI tools and set a retention period for logs.` },
-    { id:'marketing', title:'AI in Marketing & Community Content', 
+    { id:'marketing', title:'AI in Marketing & Community Content',
       fields:[
         'socialChannels','customSocialChannels',
         'creativeTools','customCreativeTools',
@@ -174,8 +186,8 @@ Use this classification to determine how rigorously you apply reviews, testing, 
         return `
         <table>
           <tr><th>Level</th><th>Definition</th></tr>
-          <tr><td><strong>High Risk</strong></td><td>Handles sensitive data or critical decisions; strict oversight.</td></tr>
-          <tr><td><strong>Medium Risk</strong></td><td>Less sensitive data; human-in-the-loop.</td></tr>
+          <tr><td><strong>High Risk</strong></td><td>Handles sensitive personal or proprietary data; critical decisions; regulatory oversight.</td></tr>
+          <tr><td><strong>Medium Risk</strong></td><td>Processes less sensitive data; human review required.</td></tr>
           <tr><td><strong>Low Risk</strong></td><td>General, non-sensitive tasks.</td></tr>
         </table>
         <label>Risk mode:</label>
@@ -193,12 +205,12 @@ Use this classification to determine how rigorously you apply reviews, testing, 
         let html = `
         <table>
           <tr><th>Level</th><th>Definition</th></tr>
-          <tr><td><strong>High Risk</strong></td><td>Handles sensitive data/critical decisions.</td></tr>
-          <tr><td><strong>Medium Risk</strong></td><td>Less sensitive data; human review.</td></tr>
+          <tr><td><strong>High Risk</strong></td><td>Handles sensitive personal or proprietary data; critical decisions; regulatory oversight.</td></tr>
+          <tr><td><strong>Medium Risk</strong></td><td>Processes less sensitive data; human review required.</td></tr>
           <tr><td><strong>Low Risk</strong></td><td>General, non-sensitive tasks.</td></tr>
         </table>`;
         if (!tools.length && !formData.customTool) {
-          html += `<p><em>No tools selected—please go back and choose at least one.</em></p>`;
+          html += `<p><em>No tools selected—go back and pick at least one.</em></p>`;
         } else {
           tools.forEach((tool,i) => {
             html += `
@@ -387,7 +399,6 @@ Use this classification to determine how rigorously you apply reviews, testing, 
     if(s.id==='riskPerTool' && formData.riskMode!=='perTool'){ currentStep++; return renderStep(); }
     if(s.id==='riskClassification' && formData.riskMode==='perTool'){ currentStep++; return renderStep(); }
 
-    // Escape backticks in info
     const infoEscaped = s.info.replace(/`/g,'\\`');
     let html = `<h2>${s.title} <span class="info-icon" onclick="showInfo(\`${infoEscaped}\`)">ℹ️</span></h2>`;
     s.fields.forEach(f => html += getFieldHTML(f));
@@ -410,9 +421,7 @@ Use this classification to determine how rigorously you apply reviews, testing, 
 </ul><hr>`;
   }
   function sectionScope(){
-    const who = formData.scope==='employees'
-      ? 'Employees only.'
-      : 'Employees, contractors, interns & partners.';
+    const who=formData.scope==='employees'?'Employees only.':'Employees, contractors, interns & partners.';
     return heading(2,'Scope')+`
 <ul>
   <li><strong>Who:</strong> ${who}</li>
@@ -434,7 +443,7 @@ Use this classification to determine how rigorously you apply reviews, testing, 
 </table><hr>`;
   }
   function sectionTools(){
-    const list = (formData.approvedToolsList||[]).map(t=>`<li>${t}</li>`).join('') + (formData.customTool?`<li>${formData.customTool}</li>`:'');
+    const list=(formData.approvedToolsList||[]).map(t=>`<li>${t}</li>`).join('')+(formData.customTool?`<li>${formData.customTool}</li>`:'');
     return heading(4,'Approved AI Tools')+`<ul>${list}</ul><hr>`;
   }
   function sectionPrivacy(){
@@ -448,7 +457,7 @@ Use this classification to determine how rigorously you apply reviews, testing, 
     return heading(5,'Data Privacy & Security')+`<ol>${items.map(i=>`<li>${i}</li>`).join('')}</ol><hr>`;
   }
   function sectionProhibited(){
-    const list = (formData.prohibitedUses||[]).map(u=>`<li>${u}</li>`).join('')+(formData.customProhibited?`<li>${formData.customProhibited}</li>`:'');
+    const list=(formData.prohibitedUses||[]).map(u=>`<li>${u}</li>`).join('')+(formData.customProhibited?`<li>${formData.customProhibited}</li>`:'');
     return heading(6,'Prohibited Use Cases')+`<ul>${list}</ul><hr>`;
   }
   function sectionGovernance(){
@@ -648,7 +657,7 @@ Use this classification to determine how rigorously you apply reviews, testing, 
     alert('Policy copied to clipboard!');
   }
 
-  // Initialize wizard
+  // Start wizard
   renderStep();
 </script>
 </body>
