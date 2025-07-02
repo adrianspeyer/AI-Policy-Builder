@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Policy Builder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      color: #005b96;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input[type="text"], select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      margin: 10px 5px 0 0;
+      padding: 10px 18px;
+      background-color: #005b96;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #003f6d;
+    }
+    .skip-btn {
+      background-color: #999;
+    }
+    .skip-btn:hover {
+      background-color: #777;
+    }
+    .info-icon {
+      cursor: pointer;
+      font-size: 1.2em;
+      margin-left: 5px;
+    }
+    .policy-output {
+      white-space: pre-wrap;
+      background: #f0f0f0;
+      padding: 20px;
+      border: 1px dashed #999;
+      border-radius: 6px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      padding-top: 60px;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.6);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 8px;
+      position: relative;
+    }
+    .close-btn {
+      position: absolute;
+      right: 15px;
+      top: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close-btn:hover {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AI Policy Builder</h1>
+    <p>Use this wizard to generate a comprehensive AI policy for your company.</p>
+    <div id="wizard"></div>
+  </div>
+
+  <!-- Modal -->
+  <div id="infoModal" class="modal">
+    <div class="modal-content">
+      <span id="closeModal" class="close-btn">✖️</span>
+      <div id="modalText"></div>
+    </div>
+  </div>
+<script>
+  const steps = [
+    { id: 'company', title: 'Company Info', info: 'Enter your company name, industry, and tone preference.', fields: ['companyName', 'industry', 'tone'] },
+    { id: 'scope', title: 'Scope', info: 'Define who the policy applies to.', fields: ['scope'] },
+    { id: 'definitions', title: 'Definitions', info: 'Decide if you want to include definitions.', fields: ['includeDefinitions'] },
+    { id: 'privacy', title: 'Data Privacy & Security', info: 'Specify data types and security requirements.', fields: ['personalData', 'tradeSecrets', 'financialData', 'encryption'] },
+    { id: 'prohibited', title: 'Prohibited Use Cases', info: 'List any prohibited AI uses.', fields: ['prohibitedUses'] },
+    { id: 'approved', title: 'Approved Use & Governance', info: 'Mention approved tools and governance.', fields: ['approvedTools', 'requireApproval'] },
+    { id: 'ip', title: 'Intellectual Property & Trade Secrets', info: 'Indicate IP ownership and protection.', fields: ['ipOwnership', 'protectTradeSecrets'] },
+    { id: 'fairness', title: 'Fairness & Bias Mitigation', info: 'State if you require fairness/bias reviews.', fields: ['biasReview'] },
+    { id: 'compliance', title: 'Compliance & Legal', info: 'Mention applicable laws and code references.', fields: ['laws', 'codeReference'] },
+    { id: 'transparency', title: 'Transparency & Explainability', info: 'State if employees should explain AI.', fields: ['publicDisclosure', 'explainability'] },
+    { id: 'training', title: 'Training & Awareness', info: 'Indicate training and acknowledgment requirements.', fields: ['training', 'acknowledgment'] },
+    { id: 'incidents', title: 'Incident Reporting & Response', info: 'State if you have an incident process.', fields: ['incidentProcess'] },
+    { id: 'communication', title: 'Public Communication', info: 'Mention public disclosure approaches.', fields: ['publicComm'] },
+    { id: 'review', title: 'Review & Updates', info: 'Specify review frequency and responsible team.', fields: ['reviewFrequency', 'responsibleTeam'] },
+    { id: 'signoff', title: 'Sign-off & Acknowledgment', info: 'Indicate if signatures are required.', fields: ['signOff'] }
+  ];
+
+  const formData = {};
+  let currentStep = 0;
+
+  const wizardDiv = document.getElementById('wizard');
+  const modal = document.getElementById('infoModal');
+  const modalText = document.getElementById('modalText');
+  const closeModal = document.getElementById('closeModal');
+
+  function renderStep() {
+    if (currentStep >= steps.length) {
+      renderFinal();
+      return;
+    }
+    const step = steps[currentStep];
+    let html = `<h2>${step.title} <span class="info-icon" onclick="showInfo('${step.info}')">ℹ️</span></h2>`;
+
+    step.fields.forEach(field => {
+      html += getFieldHTML(field);
+    });
+
+    html += `<button onclick="prevStep()">Previous</button>
+             <button onclick="nextStep()">Next</button>
+             <button class="skip-btn" onclick="skipStep()">Skip</button>`;
+    wizardDiv.innerHTML = html;
+  }
+
+  function getFieldHTML(field) {
+    switch (field) {
+      case 'companyName':
+        return '<label>Company Name:</label><input type="text" id="companyName">';
+      case 'industry':
+        return `<label>Industry:</label><select id="industry">
+          <option value="">-- Select Industry --</option>
+          <option value="Healthcare / Medical">Healthcare / Medical</option>
+          <option value="Financial Services">Financial Services</option>
+          <option value="Insurance">Insurance</option>
+          <option value="Legal / Compliance">Legal / Compliance</option>
+          <option value="Education">Education</option>
+          <option value="Technology">Technology</option>
+          <option value="Manufacturing">Manufacturing</option>
+          <option value="Retail / E-commerce">Retail / E-commerce</option>
+          <option value="Other">Other</option>
+        </select>`;
+      case 'tone':
+        return `<label>Preferred Tone:</label><select id="tone">
+          <option value="formal">Formal Legal</option>
+          <option value="plain">Plain Language</option>
+        </select>`;
+      case 'scope':
+        return `<label>Who does this apply to?</label>
+          <select id="scope">
+            <option value="all">All employees, contractors, interns, partners</option>
+            <option value="employees">Employees only</option>
+          </select>`;
+      case 'includeDefinitions':
+        return `<label>Include definitions?</label>
+          <select id="includeDefinitions">
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>`;
+      case 'personalData':
+        return `<label><input type="checkbox" id="personalData"> Handle customer personal data</label>`;
+      case 'tradeSecrets':
+        return `<label><input type="checkbox" id="tradeSecrets"> Handle trade secrets/IP</label>`;
+      case 'financialData':
+        return `<label><input type="checkbox" id="financialData"> Handle financial data</label>`;
+      case 'encryption':
+        return `<label>Require encryption?</label>
+          <select id="encryption"><option value="yes">Yes</option><option value="no">No</option></select>`;
+      case 'prohibitedUses':
+        return `<label>Prohibited use cases (free text):</label><input type="text" id="prohibitedUses">`;
+      case 'approvedTools':
+        return `<label>Have approved tools list?</label>
+          <select id="approvedTools"><option value="yes">Yes</option><option value="no">No</option></select>`;
+      case 'requireApproval':
+        return `<label>Require approval before new tools?</label>
+          <select id="requireApproval"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        case 'ipOwnership':
+          return `<label>AI outputs owned by company?</label>
+            <select id="ipOwnership"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        case 'protectTradeSecrets':
+          return `<label>Emphasize trade secret protection?</label>
+            <select id="protectTradeSecrets"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        case 'biasReview':
+          return `<label>Require fairness/bias reviews?</label>
+            <select id="biasReview"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        case 'laws':
+          return `<label>Applicable laws (free text):</label><input type="text" id="laws">`;
+        case 'codeReference':
+          return `<label>Reference code of conduct?</label>
+            <select id="codeReference"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        case 'publicDisclosure':
+          return `<label>Share policy publicly?</label>
+            <select id="publicDisclosure"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        case 'explainability':
+          return `<label>Require explainability to users?</label>
+            <select id="explainability"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        case 'training':
+          return `<label>Require training?</label>
+            <select id="training"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        case 'acknowledgment':
+          return `<label>Require acknowledgment?</label>
+            <select id="acknowledgment"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        case 'incidentProcess':
+          return `<label>Have incident process?</label>
+            <select id="incidentProcess"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        case 'publicComm':
+          return `<label>Public disclosure of AI practices?</label>
+            <select id="publicComm"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        case 'reviewFrequency':
+          return `<label>Review frequency:</label>
+            <select id="reviewFrequency">
+              <option value="annually">Annually</option>
+              <option value="semi-annually">Semi-annually</option>
+              <option value="as-needed">As needed</option>
+            </select>`;
+        case 'responsibleTeam':
+          return `<label>Responsible team (free text):</label><input type="text" id="responsibleTeam">`;
+        case 'signOff':
+          return `<label>Require sign-off?</label>
+            <select id="signOff"><option value="yes">Yes</option><option value="no">No</option></select>`;
+        default:
+          return '';
+      }
+    }
+
+    function saveStepData() {
+      steps[currentStep].fields.forEach(field => {
+        const el = document.getElementById(field);
+        formData[field] = el?.type === 'checkbox' ? el.checked : el?.value;
+      });
+    }
+
+    function nextStep() {
+      saveStepData();
+      currentStep++;
+      renderStep();
+    }
+
+    function prevStep() {
+      currentStep--;
+      renderStep();
+    }
+
+    function skipStep() {
+      currentStep++;
+      renderStep();
+    }
+
+    function showInfo(text) {
+      modalText.innerHTML = text;
+      modal.style.display = 'block';
+    }
+
+    closeModal.onclick = function() {
+      modal.style.display = 'none';
+    };
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    };
+    function renderFinal() {
+      const formal = formData.tone === 'formal';
+      let policy = `# ${formData.companyName || '[Company Name]'} AI Policy\n\n`;
+      policy += `**Industry:** ${formData.industry || 'General'}\n\n`;
+
+      policy += formal
+        ? "## Introduction & Purpose\nThis policy establishes comprehensive guidelines for ethical, secure, and compliant use of AI technologies, prioritizing the protection of customer data, trade secrets, and public trust.\n\n"
+        : "## Introduction & Purpose\nThis policy explains how we responsibly and safely use AI, protect data, and keep your trust.\n\n";
+
+      policy += "## Scope\n";
+      policy += formData.scope === 'employees'
+        ? "This policy applies to employees only.\n\n"
+        : "This policy applies to all employees, contractors, interns, and partners.\n\n";
+
+      if (formData.includeDefinitions === 'yes') {
+        policy += "## Definitions\nAI, machine learning, large language models (LLMs), personal data, and trade secrets are defined internally to ensure clarity.\n\n";
+      }
+
+      if (formData.personalData || formData.tradeSecrets || formData.financialData) {
+        policy += "## Data Privacy & Security\n";
+        if (formData.personalData) policy += "- We handle customer personal data carefully and prohibit sharing it with public AI systems.\n";
+        if (formData.tradeSecrets) policy += "- We protect trade secrets and confidential information strictly.\n";
+        if (formData.financialData) policy += "- We maintain strict controls around financial data to ensure compliance.\n";
+        if (formData.encryption === 'yes') policy += "- We enforce strong encryption and secure access for all AI-related data.\n";
+        policy += "\n";
+      }
+
+      if (formData.prohibitedUses) {
+        policy += "## Prohibited Use Cases\n";
+        policy += `The following uses are strictly prohibited: ${formData.prohibitedUses}.\n\n`;
+      }
+
+      policy += "## Approved Use & Governance\n";
+      policy += formData.approvedTools === 'yes'
+        ? "- Only pre-approved AI tools may be used.\n"
+        : "- We currently do not maintain a pre-approved tools list.\n";
+      policy += formData.requireApproval === 'yes'
+        ? "- All new AI tools require approval prior to use.\n\n"
+        : "- Approval for new AI tools is not currently required.\n\n";
+
+      policy += "## Intellectual Property & Trade Secrets\n";
+      policy += formData.ipOwnership === 'yes'
+        ? "- Outputs generated using company data belong to the company.\n"
+        : "- Outputs may not necessarily be owned by the company.\n";
+      policy += formData.protectTradeSecrets === 'yes'
+        ? "- We emphasize strict protection of trade secrets and confidential assets.\n\n"
+        : "- Trade secret protection is not emphasized in this policy.\n\n";
+
+      policy += "## Fairness & Bias Mitigation\n";
+      policy += formData.biasReview === 'yes'
+        ? "- We conduct regular bias and fairness reviews for AI systems affecting individuals.\n\n"
+        : "- Bias and fairness reviews are not formally required.\n\n";
+
+      policy += "## Compliance & Legal\n";
+      policy += formData.laws
+        ? `- We comply with the following laws: ${formData.laws}.\n`
+        : "- We comply with applicable local and international laws.\n";
+      policy += formData.codeReference === 'yes'
+        ? "- This policy aligns with our internal code of conduct and privacy policies.\n\n"
+        : "- No explicit reference to code of conduct.\n\n";
+
+      policy += "## Transparency & Explainability\n";
+      policy += formData.publicDisclosure === 'yes'
+        ? "- We publicly share how we use AI.\n"
+        : "- We do not currently disclose AI practices publicly.\n";
+      policy += formData.explainability === 'yes'
+        ? "- Employees must be able to explain AI processes in plain language upon request.\n\n"
+        : "- There is no requirement to explain AI decisions.\n\n";
+
+      policy += "## Training & Awareness\n";
+      policy += formData.training === 'yes'
+        ? "- All employees must complete mandatory AI training.\n"
+        : "- AI training is optional.\n";
+      policy += formData.acknowledgment === 'yes'
+        ? "- Formal acknowledgment of this policy is required.\n\n"
+        : "- No formal acknowledgment required.\n\n";
+
+      policy += "## Incident Reporting & Response\n";
+      policy += formData.incidentProcess === 'yes'
+        ? "- We have a defined process for reporting and responding to AI-related incidents.\n\n"
+        : "- No formal incident response process is established.\n\n";
+
+      policy += "## Public Communication\n";
+      policy += formData.publicComm === 'yes'
+        ? "- AI practices are communicated publicly in our reports or website.\n\n"
+        : "- We do not currently communicate AI practices publicly.\n\n";
+
+      policy += "## Review & Updates\n";
+      policy += `- This policy will be reviewed ${formData.reviewFrequency || 'annually'}.\n`;
+      policy += formData.responsibleTeam
+        ? `- The responsible team for reviews is: ${formData.responsibleTeam}.\n\n`
+        : "- A designated team will handle policy reviews.\n\n";
+
+      policy += "## Sign-off & Acknowledgment\n";
+      policy += formData.signOff === 'yes'
+        ? "- All covered individuals must sign or formally acknowledge this policy.\n\n"
+        : "- Formal sign-off is not required.\n\n";
+
+      policy += "---\n*Generated with AI Policy Builder. Please review with your legal and compliance teams. No liability assumed.*";
+
+      wizardDiv.innerHTML = `<h2>Preview & Copy</h2>
+        <div class="policy-output">${policy}</div>
+        <button onclick="copyText(\`${policy.replace(/`/g, '\\`')}\`)">Copy to Clipboard</button>`;
+    }
+
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Policy text copied to clipboard!");
+      });
+    }
+
+    renderStep();
+  </script>
+</body>
+</html>
